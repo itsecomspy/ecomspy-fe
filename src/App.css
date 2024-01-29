@@ -1,0 +1,9 @@
+#root {
+  height: 100vh;
+  max-height: 100vh;
+  overflow: clip;
+  font-family: "Inter", sans-serif;
+  font-weight: normal;
+  background-color: #010519;
+  color: #ffffff;
+}
