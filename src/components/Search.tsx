@@ -29,7 +29,7 @@ export const Search = () => {
   return (
     <SearchWrapper>
       <CgSearch color="rgba(255, 255, 255, 0.24)" />
-      <SearchBar placeholder="Search by products, company..." />
+      <SearchBar placeholder="Search by products, trends..." />
     </SearchWrapper>
   );
 };

@@ -20,7 +20,13 @@ const HeaderWrapper = styled.div`
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 `;
 
-export const Layout = ({ children }: React.PropsWithChildren) => {
+export const Layout = ({
+  children,
+  header,
+}: {
+  children?: React.ReactNode;
+  header?: string | any;
+}) => {
   return (
     <div className="max-w-[1304px] mx-auto h-full pb-[46px] overflow-clip">
       <HeaderWrapper>
@@ -33,7 +39,7 @@ export const Layout = ({ children }: React.PropsWithChildren) => {
       <LayoutWrapper>
         <Navbar />
         <div className="pt-[12px] pl-[24px] pb-[24px] w-full">
-          <Header />
+          <Header header={header} />
           {children}
         </div>
       </LayoutWrapper>

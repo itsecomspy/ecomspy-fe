@@ -2,6 +2,7 @@ import styled from "styled-components";
 import { Search } from "../";
 import { Categories } from "./Categories";
 import { NicheContent } from "./NicheContent";
+import { NicheProvider } from "./NicheContext";
 
 const ContentWrapper = styled.div`
   display: flex;
@@ -12,14 +13,18 @@ const ContentWrapper = styled.div`
   gap: 24px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.02);
+  height: 100%;
+  max-height: 778px;
 `;
 
 export const Content = () => {
   return (
-    <ContentWrapper>
-      <Search />
-      <Categories />
-      <NicheContent />
-    </ContentWrapper>
+    <NicheProvider>
+      <ContentWrapper>
+        <Search />
+        <Categories />
+        <NicheContent />
+      </ContentWrapper>
+    </NicheProvider>
   );
 };

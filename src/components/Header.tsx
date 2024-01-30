@@ -1,7 +1,7 @@
 // import { BreadCrumbs } from "../components";
 import { useLocation } from "react-router-dom";
 
-export const Header = () => {
+export const Header = ({ header }: { header?: string }) => {
   let location = useLocation();
   const locationPathnameCleaned = location.pathname.replace("-", " ");
   let headerText = locationPathnameCleaned.split("/")[1];
@@ -12,7 +12,7 @@ export const Header = () => {
 
   return (
     <div className="p-[13px] border-b border-[rgba(255,255,255,.04)] h-[48px] mb-[24px] capitalize">
-      {headerText}
+      {header ? header : headerText}
     </div>
   );
 };

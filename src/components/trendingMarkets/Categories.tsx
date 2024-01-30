@@ -5,6 +5,8 @@ import { CategoryButton } from "./CategoryButton";
 import { IoMenuOutline } from "react-icons/io5";
 import { niches } from "../../utils/niches";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useNicheContext } from "./NicheContext";
+import { useLanguageContext } from "@/context/LanguageContext";
 
 const CategoriesWrapper = styled.div`
   display: flex;
@@ -52,18 +54,34 @@ const CategoryMapContainer = styled.div`
 export const Categories = () => {
   const navigate = useNavigate();
   let location = useLocation();
-  const [selected, setSelected] = React.useState<string>("");
+  const { setData } = useNicheContext();
 
-  const handleSelected = (s: string) => {
-    setSelected(s);
-    navigate(`/trending-markets/${s}`);
+  // Get language from context
+  const { lan } = useLanguageContext();
+
+  const [active, setActive] = React.useState<string | undefined>("");
+
+  const handleSelected = (data: {
+    name?: object;
+    icon?: React.ReactElement;
+    id?: string;
+    items?: object[];
+  }) => {
+    setData(data);
+    setActive(data.id);
+    navigate(`/trending-markets/${data.id}`);
   };
 
   // Get niche from url and set on page load
-  React.useEffect(() => {
+  React.useMemo(() => {
     let getLocation = location.pathname.split("/")[2];
-    setSelected(getLocation);
+    getLocation && setActive(getLocation);
   }, [location]);
+
+  // Set All Categories on page load
+  React.useMemo(() => {
+    setActive("");
+  }, []);
 
   return (
     <CategoriesWrapper>
@@ -71,18 +89,22 @@ export const Categories = () => {
         <HiArrowLeft color="rgba(255, 255, 255, .72)" fontSize={16} />
       </ArrowWrapper>
       <HrBorder />
-      <CategoryButton
-        text="All Categories"
-        icon={<IoMenuOutline fontSize={16} />}
-      />
+      <div onClick={() => handleSelected({ id: "" })}>
+        <CategoryButton
+          selected={active === ""}
+          text="All Categories"
+          icon={<IoMenuOutline fontSize={16} />}
+        />
+      </div>
       <HrBorder />
       <div className="w-full h-[36px] max-w-[608px] relative overflow-hidden">
         <CategoryMapContainer>
           {niches.map((n, i) => (
-            <div key={i} onClick={() => handleSelected(n.id)}>
+            <div key={i} onClick={() => handleSelected(n)}>
               <CategoryButton
-                selected={n.id === selected}
-                text={n.name}
+                selected={n.id === active}
+                // @ts-ignore
+                text={n.name[lan]}
                 icon={n.icon}
               />
             </div>

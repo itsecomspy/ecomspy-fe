@@ -3,14 +3,9 @@ import ReactDOM from "react-dom/client";
 import "./input.css";
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import {
-  Home,
-  TrendingMarkets,
-  SpyAds,
-  Feedback,
-  Lists,
-  Settings,
-} from "./pages";
+import { Home, SpyAds, Feedback, Lists, Settings } from "./pages";
+import { TrendingMarkets, Niche } from "./pages/TrendingMarkets";
+import { LanguageProvider } from "./context/LanguageContext";
 
 const router = createBrowserRouter([
   {
@@ -18,8 +13,21 @@ const router = createBrowserRouter([
     element: <Home />,
   },
   {
-    path: "/trending-markets/*",
-    element: <TrendingMarkets />,
+    path: "/trending-markets",
+    children: [
+      {
+        index: true,
+        element: <TrendingMarkets />,
+      },
+      {
+        path: ":nicheId",
+        element: <TrendingMarkets />,
+      },
+      {
+        path: ":nicheParent/:nicheChild",
+        element: <Niche />,
+      },
+    ],
   },
   {
     path: "/spy-ads/*",
@@ -41,6 +49,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <LanguageProvider>
+      <RouterProvider router={router} />
+    </LanguageProvider>
   </React.StrictMode>
 );

@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { NavItems } from "./NavItems";
 import { navItems } from "../utils/navItems";
 import { useLocation, useNavigate } from "react-router-dom";
+import { useLanguageContext } from "../context/LanguageContext";
 
 const NavWrapper = styled.div`
   font-size: 14px;
@@ -28,14 +29,18 @@ export const Navbar = () => {
   let location = useLocation();
   const navigate = useNavigate();
 
+  // Get current language
+  const { lan } = useLanguageContext();
+
   const onSelect = (nav: string) => {
     navigate(nav);
   };
 
   // Get location from url and set on page load
   React.useEffect(() => {
-    setSelected(location.pathname);
-  }, [selected]);
+    const getNavUrl = `/${location.pathname.split("/")[1]}`;
+    setSelected(getNavUrl);
+  }, [location]);
 
   return (
     <NavWrapper className="w-[280px] min-w-[280px]">
@@ -46,16 +51,20 @@ export const Navbar = () => {
         <NavContainer>
           {navItems
             .filter((f) => f.position === "top")
-            .map((nav, key) => (
-              <div key={key} onClick={() => onSelect(nav.link)}>
-                <NavItems
-                  selected={nav.link === selected}
-                  icon={nav.icon}
-                  text={nav.text}
-                  link={nav.link}
-                />
-              </div>
-            ))}
+            .map((nav, key) => {
+              // @ts-ignore
+              const navText = nav.text[lan];
+              return (
+                <div key={key} onClick={() => onSelect(nav.link)}>
+                  <NavItems
+                    selected={nav.link === selected}
+                    icon={nav.icon}
+                    text={navText}
+                    link={nav.link}
+                  />
+                </div>
+              );
+            })}
         </NavContainer>
         <NavContainer>
           {navItems
@@ -65,8 +74,9 @@ export const Navbar = () => {
                 <NavItems
                   selected={nav.link === selected}
                   icon={nav.icon}
-                  text={nav.text}
-                  // link={nav.text}
+                  // @ts-ignore
+                  text={nav.text[lan]}
+                  link={nav.link}
                 />
               </div>
             ))}
