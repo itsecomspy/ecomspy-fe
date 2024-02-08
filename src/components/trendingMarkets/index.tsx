@@ -1,8 +1,8 @@
 import styled from "styled-components";
 import { Search } from "../";
 import { Categories } from "./Categories";
-import { NicheContent } from "./NicheContent";
-import { NicheProvider } from "./NicheContext";
+import { NicheContent } from "./Niche/NicheContent";
+import { NicheProvider } from "./Niche/NicheContext";
 
 const ContentWrapper = styled.div`
   display: flex;

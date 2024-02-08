@@ -21,19 +21,39 @@ const TabsWrapper = styled.div<{
   color: ${(props) => (props.$selcted ? "white" : "rgba(255, 255, 255, 0.72)")};
   background: ${(props) =>
     props.$selcted ? "rgba(255, 255, 255, 0.04)" : "transparent"};
+  line-height: 0;
+  display: flex;
+  align-items: center;
   &:hover {
-    transition: 0.25s;
     background: rgba(255, 255, 255, 0.04);
   }
 `;
 
-export const NicheTabs = () => {
+export const NicheTabs = ({
+  active,
+  handleTabSwtich,
+}: {
+  active: number;
+  handleTabSwtich: (arg0: any) => void;
+}) => {
+  const tabComponents = [
+    { id: 0, text: "All" },
+    { id: 1, text: "Products" },
+    { id: 2, text: "Brands" },
+    { id: 3, text: "Keywords" },
+  ];
+
   return (
     <NicheTabsWrapper>
-      <TabsWrapper $selcted>All</TabsWrapper>
-      <TabsWrapper>Products</TabsWrapper>
-      <TabsWrapper>Brands</TabsWrapper>
-      <TabsWrapper>Keywords</TabsWrapper>
+      {tabComponents.map((item, i) => (
+        <TabsWrapper
+          key={i}
+          $selcted={active === item.id}
+          onClick={() => handleTabSwtich(item.id)}
+        >
+          {item.text}
+        </TabsWrapper>
+      ))}
     </NicheTabsWrapper>
   );
 };

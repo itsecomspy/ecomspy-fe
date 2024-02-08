@@ -4,7 +4,7 @@ import "./input.css";
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Home, SpyAds, Feedback, Lists, Settings } from "./pages";
-import { TrendingMarkets, Niche } from "./pages/TrendingMarkets";
+import { TrendingMarkets, Niche, Explore } from "./pages/TrendingMarkets";
 import { LanguageProvider } from "./context/LanguageContext";
 
 const router = createBrowserRouter([
@@ -26,6 +26,10 @@ const router = createBrowserRouter([
       {
         path: ":nicheParent/:nicheChild",
         element: <Niche />,
+      },
+      {
+        path: ":nicheParent/:nicheChild/:explore",
+        element: <Explore />,
       },
     ],
   },

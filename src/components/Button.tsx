@@ -5,8 +5,10 @@ const ButtonWrapper = styled.button<{
   $backgroundColor?: string;
   $color?: string;
   $icon?: boolean;
+  $height?: number;
+  $border?: boolean;
 }>`
-  height: 32px;
+  height: ${(props) => (props.$height ? `${props.$height}px` : "auto")};
   background: ${(props) =>
     props.$backgroundColor
       ? props.$backgroundColor
@@ -14,6 +16,8 @@ const ButtonWrapper = styled.button<{
   color: ${(props) => (props.$color ? props.$color : "white")};
   column-gap: ${(props) => (props.$icon ? "8px" : "0px")};
   border-radius: 4px;
+  border: ${(props) =>
+    props.$border ? "0.5px solid #FFFFFF14" : "none"};
   padding: 0 12px;
   text-transform: capitalize;
   display: flex;
@@ -22,8 +26,8 @@ const ButtonWrapper = styled.button<{
   cursor: pointer;
   font-size: 12px;
   &:hover {
-    transition: .25s;
-    opacity: .75;
+    transition: 0.25s;
+    opacity: 0.75;
   }
 `;
 
@@ -33,6 +37,8 @@ interface ButtonProps {
   color?: string;
   backgroundColor?: string;
   action?: (arg0: any) => void;
+  height?: number;
+  border?: boolean;
 }
 
 export const Button = ({
@@ -41,6 +47,8 @@ export const Button = ({
   color,
   backgroundColor,
   action,
+  height,
+  border,
 }: ButtonProps) => {
   return (
     <ButtonWrapper
@@ -48,9 +56,11 @@ export const Button = ({
       $color={color}
       $backgroundColor={backgroundColor}
       $icon={!!icon}
+      $height={height}
+      $border={border}
     >
-      {icon && icon}
       {text}
+      {icon && icon}
     </ButtonWrapper>
   );
 };

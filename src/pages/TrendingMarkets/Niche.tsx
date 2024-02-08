@@ -1,7 +1,15 @@
+import React from "react";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
 import { Layout, Breadcrumb, Search } from "../../components/";
-import { NicheTabs } from "../../components/trendingMarkets/NicheHeader";
+import {
+  NicheTabs,
+  AllTab,
+  BrandsTab,
+  KeywordsTab,
+  ProductsTab,
+} from "../../components/trendingMarkets/Niche";
+import { Filters } from "../../components/trendingMarkets/Filters";
 
 const NicheWrapper = styled.div`
   display: flex;
@@ -12,7 +20,7 @@ const NicheWrapper = styled.div`
   border-radius: 4px;
   background: rgba(255, 255, 255, 0.02);
   width: 100%;
-  max-height: 614px;
+  max-height: 778px;
   height: 100%;
 `;
 
@@ -24,13 +32,29 @@ export const Niche = () => {
     return string;
   });
 
+  // Component tab items and filter to display component
+  const [tabItem, setTabItem] = React.useState<number>(0);
+  const tabViews = [
+    { id: 0, component: <AllTab key={0} /> },
+    { id: 1, component: <BrandsTab key={1} /> },
+    { id: 2, component: <KeywordsTab key={2} /> },
+    { id: 3, component: <ProductsTab key={3} /> },
+  ];
+  const componentToDisplay = tabViews.map((tab) => {
+    if (tab.id === tabItem) {
+      return tab.component;
+    }
+  });
+
   return (
     <Layout header={<Breadcrumb array={headerText} />}>
       <NicheWrapper>
-        <NicheTabs />
-        <div className="w-[333px]">
-          <Search />
+        <NicheTabs active={tabItem} handleTabSwtich={setTabItem} />
+        <div className="w-full flex items-center justify-between">
+          <Search width="333px" />
+          <Filters />
         </div>
+        {componentToDisplay}
       </NicheWrapper>
     </Layout>
   );

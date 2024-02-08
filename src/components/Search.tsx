@@ -6,7 +6,6 @@ const SearchWrapper = styled.div`
   display: flex;
   align-items: center;
   padding: 8px 12px;
-  width: 100%;
   column-gap: 8px;
   border-radius: 4px;
 `;
@@ -25,9 +24,9 @@ const SearchBar = styled.input`
   }
 `;
 
-export const Search = () => {
+export const Search = ({ width }: { width?: number | string }) => {
   return (
-    <SearchWrapper>
+    <SearchWrapper className={`${width ? `w-[${width}]` : "w-full"}`}>
       <CgSearch color="rgba(255, 255, 255, 0.24)" />
       <SearchBar placeholder="Search by products, trends..." />
     </SearchWrapper>

@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useNicheContext } from "./NicheContext";
 import { NicheCard } from "./NicheCard";
 import { useLanguageContext } from "@/context/LanguageContext";
-import { niches } from "../../utils/niches";
+import { niches } from "../../../utils/niches";
 
 const NicheContentWrapper = styled.div`
   gap: 24px;

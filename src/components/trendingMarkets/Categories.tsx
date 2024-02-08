@@ -5,7 +5,7 @@ import { CategoryButton } from "./CategoryButton";
 import { IoMenuOutline } from "react-icons/io5";
 import { niches } from "../../utils/niches";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useNicheContext } from "./NicheContext";
+import { useNicheContext } from "./Niche/NicheContext";
 import { useLanguageContext } from "@/context/LanguageContext";
 
 const CategoriesWrapper = styled.div`
@@ -49,12 +49,21 @@ const CategoryMapContainer = styled.div`
   position: absolute;
   column-gap: 16px;
   width: 100%;
+  scroll-behavior: smooth;
 `;
 
 export const Categories = () => {
   const navigate = useNavigate();
   let location = useLocation();
   const { setData } = useNicheContext();
+
+  // Category scroll ref + handler
+  const scrollRef = React.useRef(null);
+  const handleScroll = (scrollOffset: any) => {
+    if (scrollOffset) {
+      scrollRef.current.scrollLeft += scrollOffset;
+    }
+  };
 
   // Get language from context
   const { lan } = useLanguageContext();
@@ -85,7 +94,7 @@ export const Categories = () => {
 
   return (
     <CategoriesWrapper>
-      <ArrowWrapper>
+      <ArrowWrapper onClick={() => handleScroll(-250)}>
         <HiArrowLeft color="rgba(255, 255, 255, .72)" fontSize={16} />
       </ArrowWrapper>
       <HrBorder />
@@ -98,7 +107,7 @@ export const Categories = () => {
       </div>
       <HrBorder />
       <div className="w-full h-[36px] max-w-[608px] relative overflow-hidden">
-        <CategoryMapContainer>
+        <CategoryMapContainer ref={scrollRef}>
           {niches.map((n, i) => (
             <div key={i} onClick={() => handleSelected(n)}>
               <CategoryButton
@@ -112,7 +121,7 @@ export const Categories = () => {
         </CategoryMapContainer>
       </div>
       <HrBorder />
-      <ArrowWrapper>
+      <ArrowWrapper onClick={() => handleScroll(250)}>
         <HiArrowRight color="rgba(255, 255, 255, .72)" fontSize={16} />
       </ArrowWrapper>
     </CategoriesWrapper>

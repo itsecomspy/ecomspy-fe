@@ -6,3 +6,4 @@ export { Button } from "./Button";
 export { Search } from "./Search";
 export { Header } from "./Header";
 export { Breadcrumb } from "./BreadCrumb";
+export { Dropdown } from "./Dropdown";
