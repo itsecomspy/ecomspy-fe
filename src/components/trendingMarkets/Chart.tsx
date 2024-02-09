@@ -9,17 +9,18 @@ import {
 } from "recharts";
 import { Button } from "..";
 import { data } from "@/utils/_demoData";
-import { PiArrowRight } from "react-icons/pi";
+import { calculateGrowth, calculateVolume } from "@/utils/calculations";
 import { useNavigate } from "react-router-dom";
+import { PiArrowRight } from "react-icons/pi";
 
 const ChartWrapper = styled.div`
   width: auto;
   padding: 16px 0 0;
-  gap: 24px;
   border-radius: 4px;
   font-size: 14px;
   border: 1px solid rgba(255, 255, 255, 0.03);
   background: rgba(255, 255, 255, 0.02);
+  position: relative;
 `;
 
 const CustomTooltipWapper = styled.div`
@@ -39,16 +40,38 @@ const CustomTooltipWapper = styled.div`
   font-weight: 300;
 `;
 
+const InsightsWrapper = styled.div<{
+  $size?: "small" | "large";
+}>`
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 24px 28px;
+  display: flex;
+  gap: ${(props) => (props.$size === "large" ? "24px" : "12px")};
+`;
+
 interface ChartProps {
   button?: React.ReactElement;
   width: number;
   height: number;
   margin?: { t: number; b: number; l: number; r: number };
   style?: string;
+  size?: "small" | "large";
+  insights?: boolean;
 }
 
 // export const Chart = ({ data }: { data: any }) => {
-export const Chart = ({ button, width, height, margin, style }: ChartProps) => {
+export const Chart = ({
+  width,
+  height,
+  margin,
+  style,
+  size = "small",
+  insights = true,
+  button,
+}: ChartProps) => {
+
   const navigate = useNavigate();
 
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -63,8 +86,47 @@ export const Chart = ({ button, width, height, margin, style }: ChartProps) => {
     return null;
   };
 
+  const getGrowth = calculateGrowth(data[0].pv, data[data.length - 1].pv);
+  const getVolume = calculateVolume(data[data.length - 1].pv);
+
   return (
     <ChartWrapper className={style}>
+      {insights && (
+        <InsightsWrapper $size={size}>
+          <div>
+            <p
+              className={`${
+                size === "large" ? "text-[14px]" : "text-[10px]"
+              } text-[rgba(255,255,255,.64)]`}
+            >
+              Volume
+            </p>
+            <p
+              className={`font-medium ${
+                size === "large" ? "text-[24px]" : "text-[12px]"
+              }`}
+            >
+              {getVolume}
+            </p>
+          </div>
+          <div>
+            <p
+              className={`${
+                size === "large" ? "text-[14px]" : "text-[10px]"
+              } text-[rgba(255,255,255,.64)]`}
+            >
+              Growth
+            </p>
+            <p
+              className={`font-medium ${
+                size === "large" ? "text-[24px]" : "text-[12px]"
+              }`}
+            >
+              {getGrowth}X
+            </p>
+          </div>
+        </InsightsWrapper>
+      )}
       <ComposedChart
         width={width}
         height={height}
@@ -105,7 +167,6 @@ export const Chart = ({ button, width, height, margin, style }: ChartProps) => {
         />
       </ComposedChart>
       <div className="p-4">
-        <p>Bitwave</p>
         <div className="flex mt-[24px] justify-between w-full items-center">
           <Button text="View Ads" height={24} backgroundColor="none" border />
           {button ? (

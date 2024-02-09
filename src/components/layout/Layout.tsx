@@ -34,7 +34,7 @@ export const Layout = ({
           <img src={logo} width={32} alt="ecomspy logo" />
           <div className="text-[14px] font-medium">ECOMSPY</div>
         </div>
-        <Button height={32} icon={<GoNorthStar fontSize={14} />} text="button" />
+        {/* <Button height={32} icon={<GoNorthStar fontSize={14} />} text="button" /> */}
       </HeaderWrapper>
       <LayoutWrapper>
         <Navbar />

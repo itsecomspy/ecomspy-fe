@@ -70,7 +70,13 @@ const FilterComponent = ({
   );
 };
 
-export const Filters = ({ justify }: { justify?: string }) => {
+export const Filters = ({
+  justify,
+  hideCategories,
+}: {
+  justify?: string;
+  hideCategories: boolean;
+}) => {
   // Get location and match with filter
   let location = useLocation();
   let nicheId = location.pathname.split("/")[2];
@@ -117,23 +123,25 @@ export const Filters = ({ justify }: { justify?: string }) => {
 
   return (
     <FiltersWrapper $justify={justify}>
-      <FilterComponent
-        width={200}
-        handleClick={() => {
-          setFilters((prev: any) => ({ ...prev, nicheFilter: true }));
-        }}
-        selection={niche ? niche?.text : "All Categories"}
-      >
-        {filters.nicheFilter && currentNiche && (
-          <Dropdown
-            width={200}
-            handleClose={onClose}
-            title={currentNiche?.name.en}
-            onSelect={handleSetNiche}
-            items={currentNiche?.items}
-          />
-        )}
-      </FilterComponent>
+      {!hideCategories && (
+        <FilterComponent
+          width={200}
+          handleClick={() => {
+            setFilters((prev: any) => ({ ...prev, nicheFilter: true }));
+          }}
+          selection={niche ? niche?.text : "All Categories"}
+        >
+          {filters.nicheFilter && currentNiche && (
+            <Dropdown
+              width={200}
+              handleClose={onClose}
+              title={currentNiche?.name.en}
+              onSelect={handleSetNiche}
+              items={currentNiche?.items}
+            />
+          )}
+        </FilterComponent>
+      )}
       <div className="flex gap-4">
         <FilterComponent
           icon={<PiCalendarBlank fontSize={16} />}

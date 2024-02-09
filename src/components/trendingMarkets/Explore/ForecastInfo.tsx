@@ -12,7 +12,7 @@ const ForecastInfoWrapper = styled.div`
   gap: 24px;
   border-radius: 4px;
   background: #3a44e4;
-  background-image: url("/src/assets/forcasePattern.png");
+  background-image: url("/src/assets/pattern.png");
   background-position: bottom;
   background-size: contain;
   background-repeat: no-repeat;
@@ -27,7 +27,6 @@ const IconWrapper = styled.div`
   gap: 8px;
   flex-shrink: 0;
   border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(
     149deg,
     rgba(255, 255, 255, 0.4) 11.23%,
