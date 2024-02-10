@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from "recharts";
 import { Button } from "..";
-import { data } from "@/utils/_demoData";
+// import { data } from "@/utils/_demoData";
 import { calculateGrowth, calculateVolume } from "@/utils/calculations";
 import { useNavigate } from "react-router-dom";
 import { PiArrowRight } from "react-icons/pi";
@@ -27,17 +27,28 @@ const CustomTooltipWapper = styled.div`
   background-color: #010519;
   padding: 8px;
   border-radius: 4px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  & .title {
-    font-size: 10px;
-    font-weight: 700;
-    margin-bottom: 4px;
-    color: rgba(255, 255, 255, 0.64);
-  }
   font-size: 14px;
   color: white;
   font-weight: 300;
+  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  & .date {
+    font-size: 12px;
+    font-weight: 700;
+    padding-bottom: 6px;
+    color: rgba(255, 255, 255, 0.64);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-style: dashed;
+  }
+  & .label {
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    gap: 36px;
+    color: rgba(255, 255, 255, 0.4);
+  }
 `;
 
 const InsightsWrapper = styled.div<{
@@ -57,37 +68,59 @@ interface ChartProps {
   height: number;
   margin?: { t: number; b: number; l: number; r: number };
   style?: string;
+  name?: string;
+  chartData?: {
+    name: string;
+    pv: number;
+  }[];
   size?: "small" | "large";
   insights?: boolean;
 }
 
-// export const Chart = ({ data }: { data: any }) => {
 export const Chart = ({
   width,
   height,
   margin,
   style,
+  name,
+  chartData,
   size = "small",
   insights = true,
   button,
 }: ChartProps) => {
-
   const navigate = useNavigate();
+
+  const getGrowth = chartData
+    ? calculateGrowth(chartData[0]?.pv, chartData[chartData.length - 1]?.pv)
+    : [];
+  const getVolume = chartData
+    ? calculateVolume(chartData[chartData.length - 1]?.pv)
+    : [];
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
+      let tooltipGrowth = chartData
+        ? calculateGrowth(chartData[0]?.pv, payload[0].value)
+        : [];
+
       return (
         <CustomTooltipWapper>
-          <p className="title">{label}</p>
-          <p className="label">${payload[0].value} / mo.</p>
+          <p className="date">
+            {payload[0].payload.label}
+          </p>
+          <p className="label">
+            <span>Interest</span>
+            <span className="font-medium text-white">{payload[0].value}%</span>
+          </p>
+          <p className="label">
+            <span>Growth</span>
+            <span className="font-medium text-white">{tooltipGrowth}</span>
+          </p>
         </CustomTooltipWapper>
       );
     }
     return null;
   };
-
-  const getGrowth = calculateGrowth(data[0].pv, data[data.length - 1].pv);
-  const getVolume = calculateVolume(data[data.length - 1].pv);
 
   return (
     <ChartWrapper className={style}>
@@ -99,14 +132,14 @@ export const Chart = ({
                 size === "large" ? "text-[14px]" : "text-[10px]"
               } text-[rgba(255,255,255,.64)]`}
             >
-              Volume
+              Interest
             </p>
             <p
               className={`font-medium ${
                 size === "large" ? "text-[24px]" : "text-[12px]"
               }`}
             >
-              {getVolume}
+              {getVolume}%
             </p>
           </div>
           <div>
@@ -120,9 +153,16 @@ export const Chart = ({
             <p
               className={`font-medium ${
                 size === "large" ? "text-[24px]" : "text-[12px]"
+              } ${
+                getGrowth === "+0"
+                  ? "text-white"
+                  : // @ts-ignore
+                  getGrowth.includes("+")
+                  ? "text-[#4fea47]"
+                  : "text-[#f44336]"
               }`}
             >
-              {getGrowth}X
+              {getGrowth}
             </p>
           </div>
         </InsightsWrapper>
@@ -130,7 +170,7 @@ export const Chart = ({
       <ComposedChart
         width={width}
         height={height}
-        data={data}
+        data={chartData}
         margin={{
           top: margin ? margin.t : 16,
           right: margin ? margin.r : 16,
@@ -167,13 +207,16 @@ export const Chart = ({
         />
       </ComposedChart>
       <div className="p-4">
+        <p className="capitalize">{name || "N/A"}</p>
         <div className="flex mt-[24px] justify-between w-full items-center">
           <Button text="View Ads" height={24} backgroundColor="none" border />
           {button ? (
             button
           ) : (
             <Button
-              action={() => navigate("bitwave")}
+              action={() =>
+                navigate(`${name?.replaceAll(" ", "-").toLowerCase()}`)
+              }
               text="Explore"
               height={24}
               icon={<PiArrowRight />}

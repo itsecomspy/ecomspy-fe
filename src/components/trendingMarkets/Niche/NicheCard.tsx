@@ -1,5 +1,8 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { useNicheContext } from "./NicheContext";
+import { useSetAtom } from "jotai";
+import { nicheAtom } from "@root/src/main.atom";
 
 const NicheCardWrapper = styled.div`
   border-radius: 4px;
@@ -33,21 +36,33 @@ const IconWrapper = styled.div`
 interface NicheCardProps {
   icon: React.ReactElement;
   text: string;
-  id: string;
-  parentId: string;
+  id: number;
+  value: string;
+  parentId?: string;
+  isParent?: boolean;
 }
 
 export const NicheCard = ({
   icon,
   text,
   id,
+  value,
   parentId,
+  isParent,
 }: NicheCardProps) => {
   const navigate = useNavigate();
+  const setNicheAtomData = useSetAtom(nicheAtom);
 
   return (
     <NicheCardWrapper
-      onClick={() => navigate(`/trending-markets/${parentId}/${id}`)}
+      onClick={() => {
+        setNicheAtomData({ id });
+        navigate(
+          isParent
+            ? `/trending-markets/${value}`
+            : `/trending-markets/${parentId}/${value}`
+        );
+      }}
     >
       <IconWrapper>{icon}</IconWrapper>
       <div className="flex flex-col gap-[8px]">

@@ -5,7 +5,7 @@ import { Layout, Breadcrumb, Search } from "../../components/";
 import {
   NicheTabs,
   AllTab,
-  BrandsTab,
+  // BrandsTab,
   KeywordsTab,
   ProductsTab,
 } from "../../components/trendingMarkets/Niche";
@@ -24,11 +24,21 @@ const NicheWrapper = styled.div`
   height: 100%;
 `;
 
+const ComponentWrapper = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  overflow: scroll;
+  gap: 12px;
+  row-gap: 12px;
+  height: 100%;
+  width: 100%;
+`;
+
 export const Niche = () => {
   let location = useLocation();
   let locationText = location.pathname.substring(1);
   let headerText = locationText.split("/").map((h) => {
-    let string = h.replace("-", " ");
+    let string = h.replaceAll("-", " ");
     return string;
   });
 
@@ -36,9 +46,9 @@ export const Niche = () => {
   const [tabItem, setTabItem] = React.useState<number>(0);
   const tabViews = [
     { id: 0, component: <AllTab key={0} /> },
-    { id: 1, component: <BrandsTab key={1} /> },
-    { id: 2, component: <KeywordsTab key={2} /> },
-    { id: 3, component: <ProductsTab key={3} /> },
+    { id: 1, component: <ProductsTab key={1} /> },
+    // { id: 2, component: <BrandsTab key={2} /> },
+    { id: 3, component: <KeywordsTab key={3} /> },
   ];
   const componentToDisplay = tabViews.map((tab) => {
     if (tab.id === tabItem) {
@@ -52,9 +62,9 @@ export const Niche = () => {
         <NicheTabs active={tabItem} handleTabSwtich={setTabItem} />
         <div className="w-full flex items-center justify-between">
           <Search width="333px" />
-          <Filters />
+          <Filters hideCategories />
         </div>
-        {componentToDisplay}
+        <ComponentWrapper>{componentToDisplay}</ComponentWrapper>
       </NicheWrapper>
     </Layout>
   );

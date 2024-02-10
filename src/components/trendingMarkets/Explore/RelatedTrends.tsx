@@ -22,7 +22,18 @@ const TrendsWrapper = styled.div`
   background: rgba(255, 255, 255, 0.02);
 `;
 
-export const RelatedTrends = () => {
+export const RelatedTrends = ({
+  trends,
+}: {
+  trends: {
+    query: string;
+    value: number;
+    formattedValue: string;
+    hasData: boolean;
+    link: string;
+    trendData: string;
+  }[];
+}) => {
   const relatedTrendsData = [
     { text: "Binance Cash", data: _data },
     { text: "Ethereum Cash", data: _data },
@@ -34,14 +45,36 @@ export const RelatedTrends = () => {
     <RelatedTrendsWrapper>
       <p>Related Trends</p>
       <TrendsWrapper>
-        {relatedTrendsData.map((trend, i) => (
-          <Trend
-            key={i}
-            text={trend.text}
-            border={i !== relatedTrendsData.length - 1}
-            data={trend.data}
-          />
-        ))}
+        {trends.map((trend, i) => {
+          const trendLine = JSON.parse(trend.trendData || "{}") as {
+            default: {
+              timelineData: {
+                time: string;
+                formattedTime: string;
+                formattedAxisTime: string;
+                value: number[];
+                formattedValue: string[];
+                hasData: boolean[];
+              }[];
+            };
+          };
+
+          return (
+            <Trend
+              key={i}
+              text={trend.query}
+              border={i !== relatedTrendsData.length - 1}
+              data={trendLine.default.timelineData.map((t) => {
+                return {
+                  name: t.formattedTime,
+                  amt: t.formattedTime.split(",")[1],
+                  pv: t.value[0],
+                  uv: t.formattedTime.split(",")[0],
+                };
+              })}
+            />
+          );
+        })}
       </TrendsWrapper>
     </RelatedTrendsWrapper>
   );

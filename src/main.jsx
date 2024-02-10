@@ -6,6 +6,8 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { Home, SpyAds, Feedback, Lists, Settings } from "./pages";
 import { TrendingMarkets, Niche, Explore } from "./pages/TrendingMarkets";
 import { LanguageProvider } from "./context/LanguageContext";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Provider } from "jotai";
 
 const router = createBrowserRouter([
   {
@@ -51,10 +53,16 @@ const router = createBrowserRouter([
   },
 ]);
 
+const queryClient = new QueryClient();
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <LanguageProvider>
-      <RouterProvider router={router} />
+      <QueryClientProvider client={queryClient}>
+        <Provider>
+          <RouterProvider router={router} />
+        </Provider>
+      </QueryClientProvider>
     </LanguageProvider>
   </React.StrictMode>
 );

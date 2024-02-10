@@ -5,6 +5,8 @@ import { Dropdown } from "../index";
 import { useLocation } from "react-router-dom";
 import { niches } from "@/utils/niches";
 import { timelineFilter, statusFilter } from "@/utils/filters";
+import { useAtom, useSetAtom } from "jotai";
+import { filterAtom } from "@root/src/main.atom";
 
 const FiltersWrapper = styled.div<{
   $justify?: string;
@@ -26,16 +28,16 @@ const FilterWrapper = styled.div`
   z-index: 1;
   color: rgba(255, 255, 255, 0.64);
   font-size: 12px;
+  cursor: pointer;
   & .container {
-    cursor: pointer;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 8px;
-    &:hover {
-      transition: 0.2s;
-      color: white;
-    }
+  }
+  &:hover {
+    transition: 0.2s;
+    color: white;
   }
 `;
 
@@ -75,8 +77,9 @@ export const Filters = ({
   hideCategories,
 }: {
   justify?: string;
-  hideCategories: boolean;
+  hideCategories?: boolean;
 }) => {
+  const [filterAtomData, setFilterAtomData] = useAtom(filterAtom);
   // Get location and match with filter
   let location = useLocation();
   let nicheId = location.pathname.split("/")[2];
@@ -101,9 +104,32 @@ export const Filters = ({
   const [timeline, setTimeline] = React.useState<{
     text: string;
     id: number;
-  }>({ id: 2, text: "1 Year" });
+  }>({ id: 4, text: "5 Years" });
   const handleSetTimeline = (fil: { text: string; id: number }) => {
     setTimeline(fil);
+    const d = new Date();
+    switch (fil.id) {
+      case 0:
+        d.setMonth(d.getMonth() - 3);
+        break;
+      case 1:
+        d.setMonth(d.getMonth() - 6);
+        break;
+      case 2:
+        d.setFullYear(d.getFullYear() - 1);
+        break;
+      case 3:
+        d.setFullYear(d.getFullYear() - 2);
+        break;
+      case 4:
+        d.setFullYear(d.getFullYear() - 5);
+        break;
+      default:
+        d.setMonth(d.getMonth() - 3);
+        break;
+    }
+
+    setFilterAtomData({ timeline: { date: d, ...fil } });
   };
 
   const [status, setStatus] = React.useState<{ text: string; id: number }>({
@@ -148,7 +174,7 @@ export const Filters = ({
           handleClick={() => {
             setFilters((prev: any) => ({ ...prev, timelineFilter: true }));
           }}
-          selection={timeline?.text}
+          selection={filterAtomData?.timeline?.text || timeline?.text}
         >
           {filters.timelineFilter && (
             <Dropdown

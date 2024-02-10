@@ -7,3 +7,4 @@ export { Search } from "./Search";
 export { Header } from "./Header";
 export { Breadcrumb } from "./BreadCrumb";
 export { Dropdown } from "./Dropdown";
+export { Loader } from "./Loader";

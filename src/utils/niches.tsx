@@ -15,7 +15,7 @@ import {
 export const niches = [
   {
     name: { en: "Fashion", fr: "" },
-    icon: <PiDress />,
+    icon: <PiDress fontSize={20} />,
     id: "fashion",
     items: [
       { parentId: "fashion", id: "clothing", text: { en: "Clothing", fr: "" }, icon: "" },
@@ -25,7 +25,7 @@ export const niches = [
   },
   {
     name: { en: "Beauty and Personal Care", fr: "" },
-    icon: <PiHandSoap />,
+    icon: <PiHandSoap fontSize={20} />,
     id: "beauty-and-personal-care",
     items: [
       { parentId: "beauty-and-personal-care", id: "makeup", text: { en: "Makeup", fr: "" }, icon: "" },
@@ -37,7 +37,7 @@ export const niches = [
   },
   {
     name: { en: "Home", fr: "" },
-    icon: <PiHouseLine />,
+    icon: <PiHouseLine fontSize={20} />,
     id: "home",
     items: [
       { parentId: "home", id: "furniture", text: { en: "Furniture", fr: "" }, icon: "" },
@@ -48,7 +48,7 @@ export const niches = [
   },
   {
     name: { en: "Electronics and gadgets", fr: "" },
-    icon: <PiTelevision />,
+    icon: <PiTelevision fontSize={20} />,
     id: "electronics-and-gadgets",
     items: [
       { parentId: "electronics-and-gadgets", id: "consumer-electronics", text: { en: "Consumer electronics", fr: "" }, icon: "", }, 
@@ -59,7 +59,7 @@ export const niches = [
   },
   {
     name: { en: "Health and Wellness", fr: "" },
-    icon: <PiFirstAid />,
+    icon: <PiFirstAid fontSize={20} />,
     id: "health-and-wellness",
     items: [
       { parentId:"health-and-wellness", id: "fitness-and-exercise", text: { en: "Fitness and exercise", fr: "" }, icon: "", }, 
@@ -74,7 +74,7 @@ export const niches = [
   },
   {
     name: { en: "Sports and Outdoors", fr: "" },
-    icon: <PiSoccerBall />,
+    icon: <PiSoccerBall fontSize={20} />,
     id: "sports-and-outdoors",
     items: [
       { parentId: "sports-and-outdoors", id: "sporting-goods", text: { en: "Sporting Goods", fr: "" }, icon: "" },
@@ -86,7 +86,7 @@ export const niches = [
   },
   {
     name: { en: "Toys and Games", fr: "" },
-    icon: <PiPinwheel />,
+    icon: <PiPinwheel fontSize={20} />,
     id: "toys-and-games",
     items: [
       { parentId: "toys-and-games", id: "educational-toys", text: { en: "Educational Toys", fr: "" }, icon: "", }, 
@@ -98,7 +98,7 @@ export const niches = [
   },
   {
     name: { en: "Pets", fr: "" },
-    icon: <PiDog />,
+    icon: <PiDog fontSize={20} />,
     id: "pets",
     items: [
       { parentId: "pets", id: "pet-toys", text: { en: "Pet toys", fr: "" }, icon: "" },
@@ -109,7 +109,7 @@ export const niches = [
   },
   {
     name: { en: "Automotive", fr: "" },
-    icon: <PiCar />,
+    icon: <PiCar fontSize={20} />,
     id: "automotive",
     items: [
       { parentId: "automotive", id: "car-accessories", text: { en: "Car accessories", fr: "" }, icon: "", }, 
@@ -119,7 +119,7 @@ export const niches = [
   },
   {
     name: { en: "Baby and Toddler", fr: "" },
-    icon: <PiBaby />,
+    icon: <PiBaby fontSize={20} />,
     id: "baby-and-toddler",
     items: [
       { parentId: "baby-and-toddler", id: "Clothes", text: { en: "Clothes", fr: "" }, icon: "" },
@@ -131,7 +131,7 @@ export const niches = [
   },
   {
     name: { en: "Lifestyle and culture", fr: "" },
-    icon: <PiLifebuoy />,
+    icon: <PiLifebuoy fontSize={20} />,
     id: "lifestyle-and-culture",
     items: [
       { parentId: "lifestyle-and-culture", id: "travel", text: { en: "Travel", fr: "" }, icon: "" },

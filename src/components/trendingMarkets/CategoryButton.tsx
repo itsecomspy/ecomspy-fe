@@ -3,17 +3,17 @@ import styled from "styled-components";
 const CategoryButtonWrapper = styled.div<{
   $selected?: boolean;
 }>`
-  border-radius: 1000px;
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  height: 75px;
+  width: 100%;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   color: rgba(255, 255, 255, 0.72);
   font-size: 14px;
   display: flex;
-  padding: 8px 12px;
+  padding: 8px 24px;
   align-items: center;
-  gap: 8px;
+  gap: 20px;
   cursor: pointer;
   white-space: nowrap;
-  max-height: 36px;
   text-transform: capitalize;
   &:hover {
     transition: 0.25s;
@@ -22,10 +22,10 @@ const CategoryButtonWrapper = styled.div<{
   ${(props) =>
     props.$selected
       ? `
-      background-color: rgba(255,255,255,.4);
+      background-color: rgba(255,255,255,.075);
       transition: .25s;
       &:hover {
-        background-color: rgba(255,255,255,.4);
+        background-color: rgba(255,255,255,.075);
       }`
       : ""};
 `;

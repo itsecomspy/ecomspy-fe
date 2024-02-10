@@ -25,7 +25,7 @@ export const Trend = ({
     <TrendWrapper
       className={`${border ? "border-b" : ""} border-[rgba(255,255,255,0.03)]`}
     >
-      <p className="text-[14px] min-w-[200px]">{text}</p>
+      <p className="text-[14px] capitalize min-w-[200px]">{text}</p>
       <ComposedChart
         width={128}
         height={44}
