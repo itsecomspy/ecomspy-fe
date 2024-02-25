@@ -34,7 +34,10 @@ function useController() {
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
-    navigate(`/trending-markets/all/search/${searchTerm}`);
+
+    let formattedSearchTerm = searchTerm.replaceAll(" ", "-");
+
+    navigate(`/trending-markets/all/search/${formattedSearchTerm}`);
   };
   return { handleSubmit };
 }
