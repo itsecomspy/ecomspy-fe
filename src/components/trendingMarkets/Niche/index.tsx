@@ -6,3 +6,4 @@ export { NicheCard } from "./NicheCard";
 export { NicheContent } from "./NicheContent";
 export { NicheTabs } from "./NicheTabs";
 export { ProductsTab } from "./ProductsTab";
+export { NoData } from "./NoData";

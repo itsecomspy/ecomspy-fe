@@ -43,7 +43,6 @@ interface DropdownProps {
 }
 
 export const Dropdown = ({
-  anchor,
   width,
   items,
   title,
@@ -59,7 +58,7 @@ export const Dropdown = ({
     <ClickAwayListener onClickAway={() => handleClose()}>
       <DropdownWrapper
         onClick={(e) => e.stopPropagation()}
-        className={`w-[${width}px] ${anchor ? `${anchor}-0` : "left-0"}`}
+        className={`w-[${width}px] right-0`}
       >
         <p className="text-xs pb-4 uppercase border-b border-dashed border-[rgba(255,255,255,.06)]">
           {title}
@@ -71,6 +70,7 @@ export const Dropdown = ({
               handleSelect({
                 id: item.id,
                 text: item.text.en ? item.text.en : item.text,
+                value: item.value
               })
             }
           >

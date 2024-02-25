@@ -1,10 +1,12 @@
 import styled from "styled-components";
 import { Trend } from ".";
 import { data as _data } from "@/utils/_demoData";
+import { Pagination } from "../..";
+import React from "react";
 
 const RelatedTrendsWrapper = styled.div`
   width: 100%;
-  padding: 16px;
+  padding: 50px 16px;
   gap: 24px;
   display: flex;
   flex-direction: column;
@@ -34,48 +36,53 @@ export const RelatedTrends = ({
     trendData: string;
   }[];
 }) => {
-  const relatedTrendsData = [
-    { text: "Binance Cash", data: _data },
-    { text: "Ethereum Cash", data: _data },
-    { text: "BNB Cash", data: _data },
-    { text: "Bitcon Cash", data: _data },
-  ];
+  // Currently displayed items in pagination
+  const [page, setPage] = React.useState<number>(1);
+  let itemsToDisplay = 4;
 
   return (
     <RelatedTrendsWrapper>
       <p>Related Trends</p>
       <TrendsWrapper>
-        {trends.map((trend, i) => {
-          const trendLine = JSON.parse(trend.trendData || "{}") as {
-            default: {
-              timelineData: {
-                time: string;
-                formattedTime: string;
-                formattedAxisTime: string;
-                value: number[];
-                formattedValue: string[];
-                hasData: boolean[];
-              }[];
+        {trends
+          ?.slice(itemsToDisplay * (page - 1), itemsToDisplay * page)
+          .map((trend, i) => {
+            const trendLine = JSON.parse(trend.trendData || "{}") as {
+              default: {
+                timelineData: {
+                  time: string;
+                  formattedTime: string;
+                  formattedAxisTime: string;
+                  value: number[];
+                  formattedValue: string[];
+                  hasData: boolean[];
+                }[];
+              };
             };
-          };
 
-          return (
-            <Trend
-              key={i}
-              text={trend.query}
-              border={i !== relatedTrendsData.length - 1}
-              data={trendLine.default.timelineData.map((t) => {
-                return {
-                  name: t.formattedTime,
-                  amt: t.formattedTime.split(",")[1],
-                  pv: t.value[0],
-                  uv: t.formattedTime.split(",")[0],
-                };
-              })}
-            />
-          );
-        })}
+            return (
+              <Trend
+                key={i}
+                text={trend.query}
+                border
+                data={trendLine.default.timelineData.map((t) => {
+                  return {
+                    name: t.formattedTime,
+                    amt: t.formattedTime.split(",")[1],
+                    pv: t.value[0],
+                    uv: t.formattedTime.split(",")[0],
+                  };
+                })}
+              />
+            );
+          })}
       </TrendsWrapper>
+      <Pagination
+        currentItems={trends}
+        itemsToDisplay={itemsToDisplay}
+        page={page}
+        setPage={setPage}
+      />
     </RelatedTrendsWrapper>
   );
 };

@@ -7,6 +7,7 @@ const ButtonWrapper = styled.button<{
   $icon?: boolean;
   $height?: number;
   $border?: boolean;
+  $disable?: boolean;
 }>`
   height: ${(props) => (props.$height ? `${props.$height}px` : "auto")};
   background: ${(props) =>
@@ -25,6 +26,15 @@ const ButtonWrapper = styled.button<{
   justify-content: center;
   cursor: pointer;
   font-size: 12px;
+  ${
+    (props) => props.$disable ? 
+    `
+      pointer-events: none;
+      cursor: auto;
+      opacity: .25;
+
+    ` : ``
+  }
   &:hover {
     transition: 0.25s;
     opacity: 0.75;
@@ -39,6 +49,7 @@ interface ButtonProps {
   action?: (arg0: any) => void;
   height?: number;
   border?: boolean;
+  disable?: boolean;
 }
 
 export const Button = ({
@@ -49,6 +60,7 @@ export const Button = ({
   action,
   height,
   border,
+  disable,
 }: ButtonProps) => {
   return (
     <ButtonWrapper
@@ -58,6 +70,7 @@ export const Button = ({
       $icon={!!icon}
       $height={height}
       $border={border}
+      $disable={disable}
     >
       {text}
       {icon && icon}

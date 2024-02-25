@@ -1,7 +1,6 @@
 import styled from "styled-components";
 import { Search } from "../";
-import { Categories } from "./Categories";
-import { NicheContent } from "./Niche/NicheContent";
+import { NicheDisplay } from "./Niche/NicheDisplay";
 import { NicheProvider } from "./Niche/NicheContext";
 import { Loader } from "../";
 import useCategories from "@root/src/hooks/use-categories";
@@ -40,10 +39,7 @@ export const Content = () => {
           {categoriesLoading ? (
             <Loader height={150} width={150} />
           ) : (
-            <>
-              <Categories />
-              <NicheContent />
-            </>
+            <NicheDisplay />
           )}
         </Wrapper>
       </ContentWrapper>

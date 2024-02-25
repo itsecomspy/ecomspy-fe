@@ -43,6 +43,8 @@ export default function useKeywords({
       const res = await firebaseService.callFunction("getCategoryKeywords", {
         category: id,
         startTime: filterAtomData?.timeline?.date,
+        minInterest: filterAtomData.status?.value.min || 0,
+        maxInterest: filterAtomData.status?.value.max || 100,
       });
       return res.data as {
         query: string;

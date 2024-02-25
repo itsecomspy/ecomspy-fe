@@ -6,10 +6,11 @@ import { Chart } from "../../components/trendingMarkets/Chart";
 import { ForecastInfo } from "../../components/trendingMarkets/Explore/ForecastInfo";
 import { PiArrowRight } from "react-icons/pi";
 import { RelatedTrends } from "@root/src/components/trendingMarkets/Explore/RelatedTrends";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import firebaseService from "@root/src/services/firebase.service";
 import { useAtomValue } from "jotai";
 import { filterAtom } from "@root/src/main.atom";
+import { useEffect } from "react";
 
 const ExploreWrapper = styled.div`
   display: flex;
@@ -26,6 +27,9 @@ const ExploreWrapper = styled.div`
 `;
 
 type ProductDetalResponse = {
+  query: string;
+  description: string;
+  volume: number;
   productTrend: {
     default: {
       averages: number[];
@@ -56,7 +60,17 @@ type ProductDetalResponse = {
     trendData: string;
   }[];
 };
+type RelatedTopics = {
+  query: string;
+  value: number;
+  formattedValue: string;
+  hasData: boolean;
+  link: string;
+  trendData: string;
+}[];
+
 function useController() {
+  const queryClient = useQueryClient();
   let location = useLocation();
   const [, parent, child, p] = location.pathname.substring(1).split("/");
   let title = p.replaceAll("-", " ");
@@ -81,6 +95,33 @@ function useController() {
     },
   });
 
+  const { data: relatedTopics = [], isLoading: loadingRelatedTopics } =
+    useQuery({
+      queryKey: ["related-topics", title],
+      queryFn: async () => {
+        return (
+          await firebaseService.callFunction("getCategoryKeywords", {
+            keyword: title,
+            startTime: filterAtomData?.timeline?.date,
+            minInterest: filterAtomData.status?.value.min || 0,
+            maxInterest: filterAtomData.status?.value.max || 100,
+          })
+        ).data as RelatedTopics;
+      },
+    });
+
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["product", title],
+    });
+  }, [filterAtomData.timeline]);
+
+  useEffect(() => {
+    queryClient.invalidateQueries({
+      queryKey: ["related-topics", title],
+    });
+  }, [filterAtomData]);
+
   const chartData: {
     name: string;
     amt: string;
@@ -99,6 +140,11 @@ function useController() {
     productDetail,
     chartData,
     loadingProductDetail,
+    relatedTopics,
+    loadingRelatedTopics,
+    parent,
+    child,
+    title,
   };
 }
 
@@ -106,12 +152,18 @@ export const Explore = () => {
   let location = useLocation();
   let locationText = location.pathname.substring(1);
   let headerText = locationText.split("/").map((h) => {
-    let string = h.replaceAll("-", " ");
+    let string = h.replaceAll("-", " ").replaceAll("%20", " ");
     return string;
   });
   let title = headerText[headerText.length - 1];
 
-  const { productDetail, chartData, loadingProductDetail } = useController();
+  const {
+    productDetail,
+    chartData,
+    loadingProductDetail,
+    relatedTopics,
+    loadingRelatedTopics,
+  } = useController();
 
   const chartButton = (
     <Button
@@ -131,9 +183,12 @@ export const Explore = () => {
           <Loader />
         ) : (
           <>
-            <Filters hideCategories justify="flex-end" />
+            <Filters hideStatus hideCategories justify="flex-end" />
             <p className="text-[24px] text-white font-medium capitalize">
-              {title}
+              {title.replaceAll("%20", " ")}
+            </p>
+            <p className="text-[14px] text-white/30">
+              {productDetail?.description}
             </p>
             <div className="flex gap-[24px] justify-between">
               <Chart
@@ -144,10 +199,17 @@ export const Explore = () => {
                 button={chartButton}
                 height={350}
                 width={600}
+                volume={productDetail?.volume}
               />
               <ForecastInfo />
             </div>
-            <RelatedTrends trends={productDetail?.relatedTopics || []} />
+            {loadingRelatedTopics ? (
+              <div className="w-full py-16 flex items-center justify-center">
+                <Loader compact height={40} width={40} />
+              </div>
+            ) : (
+              <RelatedTrends trends={relatedTopics || []} />
+            )}
           </>
         )}
       </ExploreWrapper>

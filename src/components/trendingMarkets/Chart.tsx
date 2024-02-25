@@ -21,6 +21,7 @@ const ChartWrapper = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.03);
   background: rgba(255, 255, 255, 0.02);
   position: relative;
+  height: fit-content;
 `;
 
 const CustomTooltipWapper = styled.div`
@@ -69,6 +70,7 @@ interface ChartProps {
   margin?: { t: number; b: number; l: number; r: number };
   style?: string;
   name?: string;
+  volume?: number;
   chartData?: {
     name: string;
     pv: number;
@@ -83,6 +85,7 @@ export const Chart = ({
   margin,
   style,
   name,
+  volume = 0,
   chartData,
   size = "small",
   insights = true,
@@ -93,9 +96,6 @@ export const Chart = ({
   const getGrowth = chartData
     ? calculateGrowth(chartData[0]?.pv, chartData[chartData.length - 1]?.pv)
     : [];
-  const getVolume = chartData
-    ? calculateVolume(chartData[chartData.length - 1]?.pv)
-    : [];
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -103,18 +103,27 @@ export const Chart = ({
         ? calculateGrowth(chartData[0]?.pv, payload[0].value)
         : [];
 
+      const getPointVolume =
+        Number(volume) + (Number(volume) * Number(tooltipGrowth)) / 100;
+      const getVolume = chartData ? calculateVolume(getPointVolume) : [];
+
+      let chartLabel =
+        size === "large"
+          ? `${payload[0].payload.name.split(" ")[0]} ${
+              payload[0].payload.amt
+            }`
+          : payload[0].payload.label;
+
       return (
         <CustomTooltipWapper>
-          <p className="date">
-            {payload[0].payload.label}
-          </p>
+          <p className="date">{chartLabel}</p>
           <p className="label">
-            <span>Interest</span>
-            <span className="font-medium text-white">{payload[0].value}%</span>
+            <span>Volume</span>
+            <span className="font-medium text-white">{getVolume}</span>
           </p>
           <p className="label">
             <span>Growth</span>
-            <span className="font-medium text-white">{tooltipGrowth}</span>
+            <span className="font-medium text-white">{tooltipGrowth}%</span>
           </p>
         </CustomTooltipWapper>
       );
@@ -132,14 +141,17 @@ export const Chart = ({
                 size === "large" ? "text-[14px]" : "text-[10px]"
               } text-[rgba(255,255,255,.64)]`}
             >
-              Interest
+              Volume
             </p>
             <p
               className={`font-medium ${
                 size === "large" ? "text-[24px]" : "text-[12px]"
               }`}
             >
-              {getVolume}%
+              {Intl.NumberFormat("en", { notation: "compact" }).format(
+                volume / 10 || 0
+              )}
+              {(volume / 10 || 0) < 1000 && "K"}
             </p>
           </div>
           <div>
@@ -162,7 +174,7 @@ export const Chart = ({
                   : "text-[#f44336]"
               }`}
             >
-              {getGrowth}
+              {getGrowth}%
             </p>
           </div>
         </InsightsWrapper>
@@ -208,8 +220,8 @@ export const Chart = ({
       </ComposedChart>
       <div className="p-4">
         <p className="capitalize">{name || "N/A"}</p>
-        <div className="flex mt-[24px] justify-between w-full items-center">
-          <Button text="View Ads" height={24} backgroundColor="none" border />
+        <div className="flex mt-[24px] justify-end w-full items-center">
+          {/* <Button text="View Ads" height={24} backgroundColor="none" border /> */}
           {button ? (
             button
           ) : (

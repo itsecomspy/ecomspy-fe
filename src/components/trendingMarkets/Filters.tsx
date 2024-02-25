@@ -4,7 +4,11 @@ import { PiCaretDown, PiCalendarBlank } from "react-icons/pi";
 import { Dropdown } from "../index";
 import { useLocation } from "react-router-dom";
 import { niches } from "@/utils/niches";
-import { timelineFilter, statusFilter } from "@/utils/filters";
+import {
+  categoriesFilter,
+  timelineFilter,
+  statusFilter,
+} from "@/utils/filters";
 import { useAtom, useSetAtom } from "jotai";
 import { filterAtom } from "@root/src/main.atom";
 
@@ -75,9 +79,11 @@ const FilterComponent = ({
 export const Filters = ({
   justify,
   hideCategories,
+  hideStatus,
 }: {
   justify?: string;
   hideCategories?: boolean;
+  hideStatus?: boolean;
 }) => {
   const [filterAtomData, setFilterAtomData] = useAtom(filterAtom);
   // Get location and match with filter
@@ -86,12 +92,12 @@ export const Filters = ({
   const [currentNiche, setCurrentNiche] = React.useState<any>();
 
   React.useMemo(() => {
-    let filterNiche = niches.filter((fil) => nicheId === fil.id);
+    let filterNiche = niches.filter((fil) => nicheId === `${fil.id}`);
     setCurrentNiche(filterNiche[0]);
   }, [nicheId]);
 
   const [filters, setFilters] = React.useState<any>({
-    nicheFilter: false,
+    categoriesFilter: false,
     timelineFilter: false,
     statusFilter: false,
   });
@@ -132,17 +138,27 @@ export const Filters = ({
     setFilterAtomData({ timeline: { date: d, ...fil } });
   };
 
-  const [status, setStatus] = React.useState<{ text: string; id: number }>({
+  const [status, setStatus] = React.useState<{
+    text: string;
+    id: number;
+    value: { min: number; max: number };
+  }>({
     id: 0,
     text: "All",
+    value: { min: 0, max: 100 },
   });
-  const handleSetStatus = (fil: { text: string; id: number }) => {
+  const handleSetStatus = (fil: {
+    text: string;
+    id: number;
+    value: { min: number; max: number };
+  }) => {
     setStatus(fil);
+    setFilterAtomData({ ...filterAtomData, status: fil });
   };
 
   const onClose = () =>
     setFilters({
-      nicheFilter: false,
+      categoriesFilter: false,
       timelineFilter: false,
       statusFilter: false,
     });
@@ -153,17 +169,17 @@ export const Filters = ({
         <FilterComponent
           width={200}
           handleClick={() => {
-            setFilters((prev: any) => ({ ...prev, nicheFilter: true }));
+            setFilters((prev: any) => ({ ...prev, categoriesFilter: true }));
           }}
           selection={niche ? niche?.text : "All Categories"}
         >
-          {filters.nicheFilter && currentNiche && (
+          {filters.categoriesFilter && categoriesFilter && (
             <Dropdown
               width={200}
               handleClose={onClose}
-              title={currentNiche?.name.en}
+              title={"Default"}
               onSelect={handleSetNiche}
-              items={currentNiche?.items}
+              items={categoriesFilter}
             />
           )}
         </FilterComponent>
@@ -186,24 +202,26 @@ export const Filters = ({
             />
           )}
         </FilterComponent>
-        <FilterComponent
-          icon={<PiCalendarBlank fontSize={16} />}
-          handleClick={() => {
-            setFilters((prev: any) => ({ ...prev, statusFilter: true }));
-          }}
-          selection={status?.text}
-        >
-          {filters.statusFilter && (
-            <Dropdown
-              anchor="right"
-              width={200}
-              handleClose={onClose}
-              title={status?.text}
-              onSelect={handleSetStatus}
-              items={statusFilter}
-            />
-          )}
-        </FilterComponent>
+        {!hideStatus && (
+          <FilterComponent
+            icon={<PiCalendarBlank fontSize={16} />}
+            handleClick={() => {
+              setFilters((prev: any) => ({ ...prev, statusFilter: true }));
+            }}
+            selection={filterAtomData?.status?.text || status?.text}
+          >
+            {filters.statusFilter && (
+              <Dropdown
+                anchor="right"
+                width={200}
+                handleClose={onClose}
+                title={status?.text}
+                onSelect={handleSetStatus}
+                items={statusFilter}
+              />
+            )}
+          </FilterComponent>
+        )}
       </div>
     </FiltersWrapper>
   );

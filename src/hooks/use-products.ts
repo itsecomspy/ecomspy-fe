@@ -17,6 +17,7 @@ export default function useProducts({
     {
       query: string;
       value: number;
+      volume: number;
       formattedValue: string;
       hasData: boolean;
       link: string;
@@ -43,10 +44,13 @@ export default function useProducts({
       const res = await firebaseService.callFunction("getCategoryProducts", {
         category: id,
         startTime: filterAtomData.timeline?.date,
+        minInterest: filterAtomData.status?.value.min || 0,
+        maxInterest: filterAtomData.status?.value.max || 100,
       });
       return res.data as {
         query: string;
         value: number;
+        volume: number;
         formattedValue: string;
         hasData: boolean;
         link: string;
@@ -57,7 +61,7 @@ export default function useProducts({
 
   useEffect(() => {
     getProductsMutation.mutate();
-  }, []);
+  }, [filterAtomData]);
 
   return {
     products: getProductsMutation.data,

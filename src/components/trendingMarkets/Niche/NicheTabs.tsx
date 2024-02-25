@@ -38,9 +38,9 @@ export const NicheTabs = ({
 }) => {
   const tabComponents = [
     { id: 0, text: "All" },
-    { id: 1, text: "Products" },
-    // { id: 2, text: "Brands" },
-    { id: 3, text: "Keywords" },
+    { id: 1, text: "Brands" },
+    { id: 2, text: "Non Brands" },
+    //{ id: 3, text: "Keywords" },
   ];
 
   return (

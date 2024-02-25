@@ -1,13 +1,18 @@
 import styled from "styled-components";
 import { ComposedChart, Line, Area } from "recharts";
 import { calculateGrowth } from "@/utils/calculations";
+import { useNavigate } from "react-router-dom";
 
 const TrendWrapper = styled.div`
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
   height: 76px;
+  &:last-child {
+    border: 0;
+  }
 `;
 
 export const Trend = ({
@@ -20,9 +25,15 @@ export const Trend = ({
   border: boolean;
 }) => {
   const getGrowth = calculateGrowth(data[0].pv, data[data.length - 1].pv);
+  const navigate = useNavigate();
+  const handleNavigate = () => {
+    const formatText = text.replaceAll(" ", "-");
+    navigate(`/trending-markets/all/search/${formatText}`);
+  };
 
   return (
     <TrendWrapper
+      onClick={handleNavigate}
       className={`${border ? "border-b" : ""} border-[rgba(255,255,255,0.03)]`}
     >
       <p className="text-[14px] capitalize min-w-[200px]">{text}</p>

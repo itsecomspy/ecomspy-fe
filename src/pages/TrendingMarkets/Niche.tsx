@@ -5,7 +5,7 @@ import { Layout, Breadcrumb, Search } from "../../components/";
 import {
   NicheTabs,
   AllTab,
-  // BrandsTab,
+  BrandsTab,
   KeywordsTab,
   ProductsTab,
 } from "../../components/trendingMarkets/Niche";
@@ -24,15 +24,6 @@ const NicheWrapper = styled.div`
   height: 100%;
 `;
 
-const ComponentWrapper = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  overflow: scroll;
-  gap: 12px;
-  row-gap: 12px;
-  height: 100%;
-  width: 100%;
-`;
 
 export const Niche = () => {
   let location = useLocation();
@@ -46,9 +37,9 @@ export const Niche = () => {
   const [tabItem, setTabItem] = React.useState<number>(0);
   const tabViews = [
     { id: 0, component: <AllTab key={0} /> },
-    { id: 1, component: <ProductsTab key={1} /> },
-    // { id: 2, component: <BrandsTab key={2} /> },
-    { id: 3, component: <KeywordsTab key={3} /> },
+    { id: 1, component: <BrandsTab key={1} /> },
+    { id: 2, component: <ProductsTab key={2} /> },
+    //{ id: 3, component: <KeywordsTab key={3} /> },
   ];
   const componentToDisplay = tabViews.map((tab) => {
     if (tab.id === tabItem) {
@@ -60,11 +51,11 @@ export const Niche = () => {
     <Layout header={<Breadcrumb array={headerText} />}>
       <NicheWrapper>
         <NicheTabs active={tabItem} handleTabSwtich={setTabItem} />
-        <div className="w-full flex items-center justify-between">
-          <Search width="333px" />
-          <Filters hideCategories />
+        <div className="w-full flex items-center justify-end">
+          {/* <Search width="333px" /> */}
+          <Filters />
         </div>
-        <ComponentWrapper>{componentToDisplay}</ComponentWrapper>
+        <>{componentToDisplay}</>
       </NicheWrapper>
     </Layout>
   );

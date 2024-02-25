@@ -1,7 +1,6 @@
-import React, { Key } from "react";
+import { Key } from "react";
 import styled from "styled-components";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useNicheContext } from "./NicheContext";
+import { useLocation } from "react-router-dom";
 import { NicheCard } from "./NicheCard";
 import { useLanguageContext } from "@/context/LanguageContext";
 //import { niches } from "../../../utils/niches";
@@ -34,7 +33,6 @@ export const NicheContent = () => {
       queryKey: ["subcategories", getLocation],
       queryFn: () => getSubCategories(getLocation),
     });
-
 
   return (
     <div className="p-[24px] flex overflow-clip rounded-[4px] w-full h-full flex-col gap-[24px]">

@@ -9,5 +9,11 @@ export const calculateGrowth = (firstValue: number, lastValue: number) => {
 
 export const calculateVolume = (value: number) => {
   let formatter = Intl.NumberFormat("en", { notation: "compact" });
-  return formatter.format(value);
+  let volume = formatter.format(value/10);
+  if (volume.slice(-1).toLowerCase() === "k") {
+    return volume
+  } else {
+    return `${volume}`
+  }
+
 };

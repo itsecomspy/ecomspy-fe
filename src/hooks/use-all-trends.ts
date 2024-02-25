@@ -17,6 +17,7 @@ export default function useAllTrends({
     {
       query: string;
       value: number;
+      volume: number;
       formattedValue: string;
       hasData: boolean;
       link: string;
@@ -43,10 +44,13 @@ export default function useAllTrends({
       const res = await firebaseService.callFunction("getCategoryTrends", {
         category: id,
         startTime: filterAtomData?.timeline?.date,
+        minInterest: filterAtomData.status?.value.min || 0,
+        maxInterest: filterAtomData.status?.value.max || 100,
       });
       return res.data as {
         query: string;
         value: number;
+        volume: number;
         formattedValue: string;
         hasData: boolean;
         link: string;
@@ -57,7 +61,7 @@ export default function useAllTrends({
 
   useEffect(() => {
     getAllTrendsMutation.mutate();
-  }, [filterAtomData.timeline]);
+  }, [filterAtomData]);
 
   return {
     trends: getAllTrendsMutation.data,

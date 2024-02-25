@@ -59,14 +59,14 @@ import {
 
 const app = !getApps().length
   ? initializeApp({
-      apiKey: "AIzaSyBvVElN86GiVvNcGUTUMmpe9_9fzoxvoqg",
-      authDomain: "ecomspy-blk.firebaseapp.com",
-      databaseURL: "https://ecomspy-blk-default-rtdb.firebaseio.com",
-      projectId: "ecomspy-blk",
-      storageBucket: "ecomspy-blk.appspot.com",
-      messagingSenderId: "583935764907",
-      appId: "1:583935764907:web:d6d5362a9cd69e296fcaee",
-      measurementId: "G-H8S273NMMR",
+      apiKey: import.meta.env.VITE_FIREBASE_API_KEY ?? "",
+      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN ?? "",
+      projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID ?? "",
+      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET ?? "",
+      messagingSenderId:
+        import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID ?? "",
+      appId: import.meta.env.VITE_FIREBASE_APP_ID ?? "",
+      measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? "",
     })
   : getApp();
 
@@ -197,7 +197,7 @@ class FirebaseService {
       const ref = collection(getFirestore(app), path);
       const q = query(ref, ...queries);
 
-      const res = await getDocs(q);
+      const res = await getDocs(q)
 
       return res;
     } catch (error: any) {

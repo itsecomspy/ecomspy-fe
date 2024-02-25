@@ -14,10 +14,13 @@ g .recharts-layer line {
   display: none;
 }
 g .recharts-layer text {
- font-size: 12px;
- color: #FFFFFF3D;
+  font-size: 12px;
+  color: #ffffff3d;
 }
 g .recharts-layer:first-child text {
   display: none;
- }
- 
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}

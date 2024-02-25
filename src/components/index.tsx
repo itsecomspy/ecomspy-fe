@@ -8,3 +8,4 @@ export { Header } from "./Header";
 export { Breadcrumb } from "./BreadCrumb";
 export { Dropdown } from "./Dropdown";
 export { Loader } from "./Loader";
+export { Pagination } from "./Pagination";

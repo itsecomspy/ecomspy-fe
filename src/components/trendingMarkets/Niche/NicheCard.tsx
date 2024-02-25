@@ -1,8 +1,9 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-import { useNicheContext } from "./NicheContext";
+// import { useNicheContext } from "./NicheContext";
 import { useSetAtom } from "jotai";
 import { nicheAtom } from "@root/src/main.atom";
+import { nicheIcons } from "@root/src/utils/icons";
 
 const NicheCardWrapper = styled.div`
   border-radius: 4px;
@@ -25,16 +26,19 @@ const IconWrapper = styled.div`
   align-items: center;
   gap: 8px;
   border-radius: 100px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
   background: linear-gradient(
     149deg,
     rgba(255, 255, 255, 0.16) 11.23%,
     rgba(255, 255, 255, 0) 109.72%
   );
+  img {
+    filter: brightness(0) invert(1);
+    width: 22px;
+    height: 22px;
+  }
 `;
 
 interface NicheCardProps {
-  icon: React.ReactElement;
   text: string;
   id: number;
   value: string;
@@ -43,7 +47,6 @@ interface NicheCardProps {
 }
 
 export const NicheCard = ({
-  icon,
   text,
   id,
   value,
@@ -52,6 +55,9 @@ export const NicheCard = ({
 }: NicheCardProps) => {
   const navigate = useNavigate();
   const setNicheAtomData = useSetAtom(nicheAtom);
+
+  // Filter niche icon from icons list using niche ID
+  const getNicheIcon = nicheIcons.filter((fil) => fil.id === id)[0];
 
   return (
     <NicheCardWrapper
@@ -64,7 +70,9 @@ export const NicheCard = ({
         );
       }}
     >
-      <IconWrapper>{icon}</IconWrapper>
+      <IconWrapper>
+        <img src={getNicheIcon.icon} />
+      </IconWrapper>
       <div className="flex flex-col gap-[8px]">
         <p className="py-[2px] text-[14px] text-white">{text}</p>
       </div>

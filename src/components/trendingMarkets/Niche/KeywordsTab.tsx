@@ -20,6 +20,8 @@ export const KeywordsTab = () => {
     <>
       {isLoading ? (
         <Loader />
+      ) : keywords?.length === 0 ? (
+        <p>No data</p>
       ) : (
         keywords?.map((product, index: number) => {
           const trendLine = JSON.parse(product.trendData || "{}") as {

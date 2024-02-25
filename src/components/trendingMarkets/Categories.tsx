@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { CategoryButton } from "./CategoryButton";
 import { useNavigate, useLocation } from "react-router-dom";
 import useCategories from "@root/src/hooks/use-categories";
-import { PiCircleDuotone } from "react-icons/pi";
+import { categoryIcons } from "@/utils/icons";
 
 const CategoriesWrapper = styled.div`
   width: 100%;
@@ -52,21 +52,32 @@ export const Categories = () => {
     let getLocation = location.pathname.split("/")[2];
     getLocation && setActive(Number(getLocation));
   }, []);
-  
+
   return (
     <CategoriesWrapper>
       <div className="w-full">
         <CategoryMapContainer>
-          {categories.map((n, i) => (
-            <div className="w-full" key={i} onClick={() => handleSelected(n)}>
-              <CategoryButton
-                selected={n.id === active}
-                // @ts-ignore
-                text={n.name}
-                icon={<PiCircleDuotone />}
-              />
-            </div>
-          ))}
+          {categories.map((n, i) => {
+            // Filter niche icon from icons list using niche ID
+            const getNicheIcon = categoryIcons.filter(
+              (fil) => fil.id === n.id
+            )[0];
+            return (
+              <div
+                className="w-full"
+                key={i}
+                onMouseEnter={() => handleSelected(n)}
+                onClick={() => handleSelected(n)}
+              >
+                <CategoryButton
+                  selected={n.id === active}
+                  icon={getNicheIcon.icon}
+                  // @ts-ignore
+                  text={n.name}
+                />
+              </div>
+            );
+          })}
         </CategoryMapContainer>
       </div>
     </CategoriesWrapper>

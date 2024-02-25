@@ -15,6 +15,7 @@ const CategoryButtonWrapper = styled.div<{
   cursor: pointer;
   white-space: nowrap;
   text-transform: capitalize;
+  align-items: center;
   &:hover {
     transition: 0.25s;
     background-color: rgba(255, 255, 255, 0.02);
@@ -28,10 +29,16 @@ const CategoryButtonWrapper = styled.div<{
         background-color: rgba(255,255,255,.075);
       }`
       : ""};
+
+  img {
+    filter: brightness(0) invert(1);
+    width: 22px;
+    height: 22px;
+  }
 `;
 
 interface CategoryButtonProps {
-  icon: React.ReactElement;
+  icon: string;
   text: string;
   selected?: boolean;
 }
@@ -43,7 +50,7 @@ export const CategoryButton = ({
 }: CategoryButtonProps) => {
   return (
     <CategoryButtonWrapper $selected={selected}>
-      {icon}
+      {icon && <img src={icon} width={20} />}
       {text}
     </CategoryButtonWrapper>
   );
