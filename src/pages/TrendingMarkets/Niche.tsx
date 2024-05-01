@@ -1,29 +1,33 @@
 import React from "react";
 import styled from "styled-components";
 import { useLocation } from "react-router-dom";
-import { Layout, Breadcrumb, Search } from "../../components/";
+import { Layout, Breadcrumb } from "../../components/";
 import {
   NicheTabs,
   AllTab,
   BrandsTab,
-  KeywordsTab,
-  ProductsTab,
-} from "../../components/trendingMarkets/Niche";
-import { Filters } from "../../components/trendingMarkets/Filters";
+  NonBrandsTab,
+} from "../../components/pages/TrendingMarket/Niche";
+// import { Filters } from "../../components/TrendingMarkets/Filters";
+import { NicheProvider } from "../../components/pages/TrendingMarket/Niche/NicheContext";
 
 const NicheWrapper = styled.div`
   display: flex;
-  padding: 24px;
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
+  padding-bottom: 24px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
   width: 100%;
   max-height: 778px;
   height: 100%;
+  @media screen and (max-width: 479px) {
+    max-height: calc(100% - 53px);
+    padding: 16px;
+    gap: 0px;
+    overflow: clip;
+  }
 `;
-
 
 export const Niche = () => {
   let location = useLocation();
@@ -38,8 +42,7 @@ export const Niche = () => {
   const tabViews = [
     { id: 0, component: <AllTab key={0} /> },
     { id: 1, component: <BrandsTab key={1} /> },
-    { id: 2, component: <ProductsTab key={2} /> },
-    //{ id: 3, component: <KeywordsTab key={3} /> },
+    { id: 2, component: <NonBrandsTab key={2} /> },
   ];
   const componentToDisplay = tabViews.map((tab) => {
     if (tab.id === tabItem) {
@@ -49,14 +52,12 @@ export const Niche = () => {
 
   return (
     <Layout header={<Breadcrumb array={headerText} />}>
-      <NicheWrapper>
-        <NicheTabs active={tabItem} handleTabSwtich={setTabItem} />
-        <div className="w-full flex items-center justify-end">
-          {/* <Search width="333px" /> */}
-          <Filters />
-        </div>
-        <>{componentToDisplay}</>
-      </NicheWrapper>
+      <NicheProvider>
+        <NicheWrapper>
+          <NicheTabs active={tabItem} handleTabSwtich={setTabItem} />
+          <>{componentToDisplay}</>
+        </NicheWrapper>
+      </NicheProvider>
     </Layout>
   );
 };

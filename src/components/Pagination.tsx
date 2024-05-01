@@ -8,6 +8,9 @@ const PaginationWrapper = styled.div`
   justify-content: center;
   align-items: center;
   gap: 12px;
+  @media screen and (max-width: 479px) {
+    padding-top: 16px;
+  }
 `;
 
 const PaginationItem = styled.div<{
@@ -22,19 +25,19 @@ const PaginationItem = styled.div<{
 `;
 
 export const Pagination = ({
-  currentItems,
+  currentItems = 0,
   itemsToDisplay,
   page,
   setPage,
 }: {
-  currentItems: any[];
+  currentItems: number | undefined;
   itemsToDisplay: number;
   page: number;
   setPage: any;
 }) => {
-  const lastPage = Math.ceil(currentItems?.length / itemsToDisplay);
+  const lastPage = Math.ceil(currentItems / itemsToDisplay);
 
-  let isLastItem = page < Math.ceil(currentItems?.length / itemsToDisplay);
+  let isLastItem = page < Math.ceil(currentItems / itemsToDisplay);
   const nextPage = () => {
     if (isLastItem) {
       setPage(page + 1);
@@ -45,7 +48,7 @@ export const Pagination = ({
   const prevPage = () => isFirstItem && setPage(page - 1);
 
   const PaginationItems = ({ currentPage }: { currentPage: number }) => {
-    let totalPages = Math.ceil(currentItems?.length / itemsToDisplay);
+    let totalPages = Math.ceil(currentItems / itemsToDisplay);
     let arrayItems = Array.from(
       Array(totalPages || 0),
       (_, index) => index + 1
@@ -61,18 +64,20 @@ export const Pagination = ({
         arrayItems[currentPage - 1],
         arrayItems[currentPage - 0],
         arrayItems[currentPage + 1],
+        dots,
         totalPages,
       ];
     } else {
       const itemLength = arrayItems.length;
-      displayPage = arrayItems.slice(itemLength - 4, itemLength);
+      let dp = Array.from({length: itemLength}, (_v,i) => i+1);
+      displayPage = dp.slice(-4)
     }
 
     return (
       <>
         {displayPage.map((item, key) => {
-          if (dots && key === displayPage.length - 1 && page + 3 < lastPage) {
-            return <div className="text-[12px] opacity-50">. . .</div>;
+          if (item === dots) {
+            return <div key={key} className="text-[12px] opacity-50">...</div>;
           } else
             return (
               <PaginationItem
@@ -88,7 +93,7 @@ export const Pagination = ({
     );
   };
 
-  if (currentItems.length === 0) {
+  if (currentItems === 0) {
     return;
   }
 

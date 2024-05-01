@@ -1,152 +1,37 @@
 import styled from "styled-components";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Layout, Breadcrumb, Button, Loader } from "../../components/";
-import { Filters } from "../../components/trendingMarkets/Filters";
-import { Chart } from "../../components/trendingMarkets/Chart";
-import { ForecastInfo } from "../../components/trendingMarkets/Explore/ForecastInfo";
 import { PiArrowRight } from "react-icons/pi";
-import { RelatedTrends } from "@root/src/components/trendingMarkets/Explore/RelatedTrends";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import firebaseService from "@root/src/services/firebase.service";
-import { useAtomValue } from "jotai";
-import { filterAtom } from "@root/src/main.atom";
-import { useEffect } from "react";
+import { useNicheContext } from "@components/pages/TrendingMarket/Niche/NicheContext";
+import useTrends from "@root/src/hooks/useTrends";
+import React from "react";
+import { Filters } from "@components/pages/TrendingMarket/Filters";
+import {
+  ForecastInfo,
+  RelatedTrends,
+  ChannelBreakdown,
+} from "@components/pages/TrendingMarket/Explore";
+import { Chart } from "@components/pages/TrendingMarket/Chart";
+import frownFace from "@assets/images/frown-face.png";
+import { useClientRect } from "@root/src/utils/functions";
+import { useWindowSize } from "usehooks-ts";
 
 const ExploreWrapper = styled.div`
   display: flex;
-  padding: 24px;
   flex-direction: column;
   align-items: flex-start;
   gap: 24px;
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.02);
   width: 100%;
   max-height: 778px;
   height: 100%;
   overflow: scroll;
+  @media screen and (max-width: 479px) {
+    padding: 16px;
+    max-height: 100%;
+    margin-bottom: 48px;
+  }
 `;
-
-type ProductDetalResponse = {
-  query: string;
-  description: string;
-  volume: number;
-  productTrend: {
-    default: {
-      averages: number[];
-      timelineData: {
-        time: string;
-        formattedTime: string;
-        formattedAxisTime: string;
-        value: number[];
-        formattedValue: string[];
-        hasData: boolean[];
-      }[];
-    };
-  };
-  relatedQueries: {
-    query: string;
-    value: number;
-    formattedValue: string;
-    hasData: boolean;
-    link: string;
-    trendData: string;
-  }[];
-  relatedTopics: {
-    query: string;
-    value: number;
-    formattedValue: string;
-    hasData: boolean;
-    link: string;
-    trendData: string;
-  }[];
-};
-type RelatedTopics = {
-  query: string;
-  value: number;
-  formattedValue: string;
-  hasData: boolean;
-  link: string;
-  trendData: string;
-}[];
-
-function useController() {
-  const queryClient = useQueryClient();
-  let location = useLocation();
-  const [, parent, child, p] = location.pathname.substring(1).split("/");
-  let title = p.replaceAll("-", " ");
-  const filterAtomData = useAtomValue(filterAtom);
-
-  const getProductDetailMutation = useMutation<ProductDetalResponse | null>({
-    mutationKey: ["product", title],
-    mutationFn: async () => {
-      const res = await firebaseService.callFunction("getProductDetails", {
-        keyword: title,
-        //category: id,
-        startTime: filterAtomData.timeline?.date,
-      });
-      return res.data as ProductDetalResponse;
-    },
-  });
-
-  const { data: productDetail, isLoading: loadingProductDetail } = useQuery({
-    queryKey: ["product", title],
-    queryFn: async () => {
-      return getProductDetailMutation.mutateAsync();
-    },
-  });
-
-  const { data: relatedTopics = [], isLoading: loadingRelatedTopics } =
-    useQuery({
-      queryKey: ["related-topics", title],
-      queryFn: async () => {
-        return (
-          await firebaseService.callFunction("getCategoryKeywords", {
-            keyword: title,
-            startTime: filterAtomData?.timeline?.date,
-            minInterest: filterAtomData.status?.value.min || 0,
-            maxInterest: filterAtomData.status?.value.max || 100,
-          })
-        ).data as RelatedTopics;
-      },
-    });
-
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: ["product", title],
-    });
-  }, [filterAtomData.timeline]);
-
-  useEffect(() => {
-    queryClient.invalidateQueries({
-      queryKey: ["related-topics", title],
-    });
-  }, [filterAtomData]);
-
-  const chartData: {
-    name: string;
-    amt: string;
-    pv: number;
-    uv: string;
-  }[] = (productDetail?.productTrend?.default?.timelineData || []).map((t) => {
-    return {
-      name: t.formattedTime,
-      amt: t.formattedTime.split(",")[1],
-      pv: t.value[0],
-      uv: t.formattedTime.split(",")[0],
-    };
-  });
-
-  return {
-    productDetail,
-    chartData,
-    loadingProductDetail,
-    relatedTopics,
-    loadingRelatedTopics,
-    parent,
-    child,
-    title,
-  };
-}
 
 export const Explore = () => {
   let location = useLocation();
@@ -157,18 +42,32 @@ export const Explore = () => {
   });
   let title = headerText[headerText.length - 1];
 
-  const {
-    productDetail,
-    chartData,
-    loadingProductDetail,
-    relatedTopics,
-    loadingRelatedTopics,
-  } = useController();
+  const { keywordLoading, getKeywordData } = useTrends();
+  const { timeline } = useNicheContext();
+  const [data, setData] = React.useState<any>();
+  const navigate = useNavigate();
+
+  // Get keyword data
+  let keyword = location?.state?.props?.keyword;
+  let splitLocation = location.pathname.split("/");
+  let collection = splitLocation[splitLocation.length - 2];
+  React.useEffect(() => {
+    if (location.state === null) {
+      navigate("/trending-markets");
+    }
+    getKeywordData({
+      keyword: keyword,
+      collection: collection,
+    }).then((res: any) => {
+      setData(res);
+    });
+  }, []);
 
   const chartButton = (
     <Button
       // Navigate to product details
       // action={() => navigate("#")}
+      disable
       text="More Details"
       height={24}
       icon={<PiArrowRight />}
@@ -176,39 +75,76 @@ export const Explore = () => {
     />
   );
 
+  const formatTimeline = timeline === "forecast" ? "1year" : timeline;
+  let keywordData = data?.[formatTimeline];
+  const c = keywordData?.chartData.map((k: any) => Number(k.volume));
+  const highestAmount = c && Math.max(...c);
+
+  // Use ref for wrapper width. Use to control chart height and width
+  const {
+    rect: { width },
+    ref,
+  } = useClientRect();
+  let chartWidth =
+    width > 694
+      ? (width * 95) / 100
+      : width > 493
+      ? (width * 92.5) / 100
+      : width > 344
+      ? (width * 90) / 100
+      : (width * 90) / 100;
+  let chartHeight = width > 694 ? 450 : width > 344 ? 350 : 250;
+  const { width: windowWidth } = useWindowSize();
+
   return (
     <Layout header={<Breadcrumb array={headerText} />}>
       <ExploreWrapper>
-        {loadingProductDetail ? (
+        {keywordLoading ? (
           <Loader />
         ) : (
           <>
-            <Filters hideStatus hideCategories justify="flex-end" />
+            <div className="w-full sm:w-auto sm:flex ml-auto">
+              <Filters hideStatus hideCategories justify="flex-end" />
+            </div>
             <p className="text-[24px] text-white font-medium capitalize">
               {title.replaceAll("%20", " ")}
             </p>
             <p className="text-[14px] text-white/30">
-              {productDetail?.description}
+              {keywordData?.description}
             </p>
-            <div className="flex gap-[24px] justify-between">
-              <Chart
-                size="large"
-                chartData={chartData}
-                name={title}
-                margin={{ t: 64, l: 16, r: 0, b: 0 }}
-                button={chartButton}
-                height={350}
-                width={600}
-                volume={productDetail?.volume}
-              />
+            <div className="flex flex-col sm:flex-row w-full gap-[24px] items-center justify-between">
+              <div ref={ref} className="w-full">
+                {!keywordData ? (
+                  <p className="w-full h-full flex items-center justify-center text-[15px] gap-4 flex-col">
+                    <img src={frownFace} className="w-16 h-16" />
+                    Sorry, no data is available for this timeperiod
+                  </p>
+                ) : (
+                  <Chart
+                    size={windowWidth > 1024 ? "large" : "small"}
+                    chartData={keywordData?.chartData}
+                    name={title}
+                    margin={{ t: 64, l: 16, r: 0, b: 0 }}
+                    button={chartButton}
+                    width={chartWidth}
+                    height={chartHeight}
+                    volume={keywordData?.volume}
+                    datamax={highestAmount}
+                    hiddenText
+                  />
+                )}
+              </div>
               <ForecastInfo />
             </div>
-            {loadingRelatedTopics ? (
-              <div className="w-full py-16 flex items-center justify-center">
-                <Loader compact height={40} width={40} />
+            {data && (
+              <div className="w-full gap-6 flex flex-col md:flex-row">
+                <RelatedTrends
+                  data={data.relatedTrends}
+                  collection={collection}
+                  keyword={keyword}
+                />
+                <ChannelBreakdown chartData={data[formatTimeline]} />
               </div>
-            ) : (
-              <RelatedTrends trends={relatedTopics || []} />
             )}
           </>
         )}

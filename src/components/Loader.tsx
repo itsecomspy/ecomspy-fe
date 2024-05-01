@@ -4,7 +4,7 @@ export const Loader = ({
   height = 100,
   width = 100,
   color = "#3A44E4",
-  compact = false,
+  compact = true,
 }: {
   height?: number;
   width?: number;

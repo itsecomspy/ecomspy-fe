@@ -7,6 +7,16 @@ const LanguageContext = createContext<any | undefined>(undefined);
 export const LanguageProvider = ({ children }: React.PropsWithChildren) => {
   const [lan, setLan] = useState<"en" | "fr">("en");
 
+  React.useMemo(() => {
+    let fetchLan: string | null = localStorage.getItem("lan");
+
+    if (fetchLan !== null) {
+      let parseLanguage: { value: "en" | "fr"; expiry: number } =
+        JSON.parse(fetchLan);
+      setLan(parseLanguage?.value);
+    }
+  }, []);
+
   return (
     <LanguageContext.Provider value={{ lan, setLan }}>
       {children}

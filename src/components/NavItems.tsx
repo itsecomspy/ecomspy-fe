@@ -1,11 +1,18 @@
 import React from "react";
 import styled from "styled-components";
+import { Tooltip } from ".";
+import { useLanguageContext } from "../context/LanguageContext";
 
 const NavItemWrapper = styled.div<{
   $selected?: boolean;
+  $disabled?: boolean;
 }>`
+  padding: 13px;
   border-radius: 4px;
   cursor: pointer;
+  display: flex;
+  justify-content: space-betweem;
+  align-items: center;
   &:hover {
     background: rgba(255, 255, 255, 0.02);
   }
@@ -18,6 +25,7 @@ const NavItemWrapper = styled.div<{
       background: rgba(255, 255, 255, 0.04);
     }
     &:before {
+      left: 0;
       position: absolute;
       content: "";
       width: 100%;
@@ -26,15 +34,29 @@ const NavItemWrapper = styled.div<{
       border-radius: 4px;
     }`
       : ``};
+  ${(props) =>
+    props.$disabled
+      ? `
+          cursor: auto;
+          background: rgba(255,255,255,0.01);
+          &:hover {
+            background: rgba(255,255,255,0.01);
+          }
+          & button {
+            color: rgba(255,255,255,.2);
+            cursor: auto;
+          }
+        `
+      : ``}
 `;
 
-const NavLink = styled.div`
-  padding: 13px;
+const NavLink = styled.button<{}>`
   display: flex;
   align-items: center;
   color: white;
   column-gap: 8px;
   text-transform: capitalize;
+  width: 100%;
 `;
 
 interface NavItemProps {
@@ -42,22 +64,24 @@ interface NavItemProps {
   text?: string;
   icon?: React.ReactElement;
   selected?: boolean;
-  children?: React.ReactElement;
+  disabled?: boolean;
 }
 
-export const NavItems = ({
-  text,
-  icon,
-  selected,
-  children,
-}: NavItemProps) => {
+export const NavItems = ({ text, icon, selected, disabled }: NavItemProps) => {
+  const { lan } = useLanguageContext();
+
   return (
-    <NavItemWrapper $selected={selected}>
+    <NavItemWrapper $disabled={disabled} $selected={selected}>
       <NavLink>
         {icon}
         {text}
       </NavLink>
-      {children && children}
+      {disabled && <Tooltip position="right" arrow={false} text={comingText[lan]} />}
     </NavItemWrapper>
   );
+};
+
+const comingText: any = {
+  en: "Coming Soon",
+  fr: "À venir",
 };

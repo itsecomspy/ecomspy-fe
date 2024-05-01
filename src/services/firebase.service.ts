@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
+  createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   getAuth,
@@ -35,6 +36,9 @@ import {
   FirestoreError,
   WithFieldValue,
   DocumentData,
+  updateDoc,
+  count,
+  getCountFromServer,
 } from "firebase/firestore";
 import {
   getDatabase,
@@ -97,9 +101,9 @@ class FirebaseService {
 
   // firebase services _____________________________
 
-  //public get firestore() {
-  //  return getFirestore(app);
-  //}
+  public get firestore() {
+    return getFirestore(app);
+  }
 
   //public get auth() {
   //  return getAuth(app);
@@ -141,15 +145,7 @@ class FirebaseService {
     email: string,
     password: string
   ): Promise<UserCredential> {
-    try {
-      return await signInWithEmailAndPassword(getAuth(app), email, password);
-    } catch (error: any) {
-      console.log(error.code);
-      const friendlyErrorMessage =
-        this.handleFirebaseError(error.code) || error.message;
-      // You can then either throw this new error message, or resolve it
-      throw new Error(friendlyErrorMessage);
-    }
+    return await signInWithEmailAndPassword(getAuth(app), email, password);
   }
 
   public loginWithGoogle(): Promise<UserCredential> {
@@ -175,6 +171,16 @@ class FirebaseService {
     return setDoc(doc(getFirestore(app), path), data);
   }
 
+  public setDocumentWithId<T extends WithFieldValue<DocumentData>>(
+    id: string,
+    path: string,
+    data: T
+  ): Promise<void> {
+    const pathCollection = collection(getFirestore(app), path);
+    const docRef = doc(pathCollection, id);
+    return setDoc(docRef, data);
+  }
+
   public mergeDocument(path: string, data: any): Promise<void> {
     return setDoc(doc(getFirestore(app), path), data, { merge: true });
   }
@@ -186,9 +192,30 @@ class FirebaseService {
     return addDoc(collection(getFirestore(app), path), data);
   }
 
+  public async updateDocument<T extends WithFieldValue<DocumentData>>(
+    collection: string,
+    id: string,
+    path: T
+  ): Promise<void> {
+    const docRef = doc(getFirestore(app), collection, id);
+    return updateDoc(docRef, path);
+    // const washingtonRef = doc(db, "cities", "DC");
+    // // Set the "capital" field of the city 'DC'
+    // await updateDoc(washingtonRef, {
+    //   capital: true
+    // });
+  }
+
   public async getDocument(path: string): Promise<DocumentSnapshot> {
     return getDoc(doc(getFirestore(app), path));
   }
+
+  public async getDocumentCount(path: string): Promise<any> {
+    const docRef = collection(getFirestore(app), `keywords/${path}/keywords`);
+    const snapshot = await getCountFromServer(docRef);
+    return snapshot.data().count;
+  }
+
   public async getDocuments(
     path: string,
     queries: Array<QueryConstraint>
@@ -197,7 +224,7 @@ class FirebaseService {
       const ref = collection(getFirestore(app), path);
       const q = query(ref, ...queries);
 
-      const res = await getDocs(q)
+      const res = await getDocs(q);
 
       return res;
     } catch (error: any) {
@@ -261,6 +288,26 @@ class FirebaseService {
     return sendPasswordResetEmail(getAuth(app), user()?.email || email);
   }
 
+  // create new user
+  public async createNewUser(
+    email: string,
+    password: string
+  ): Promise<UserCredential> {
+    try {
+      return await createUserWithEmailAndPassword(
+        getAuth(app),
+        email,
+        password
+      );
+    } catch (error: any) {
+      console.log(error.code);
+      const friendlyErrorMessage =
+        this.handleFirebaseError(error.code) || error.message;
+      // You can then either throw this new error message, or resolve it
+      throw new Error(friendlyErrorMessage);
+    }
+  }
+
   // send email verification link
   public sendEmailVerification() {
     const user = getAuth(app).currentUser;
@@ -284,7 +331,7 @@ class FirebaseService {
   }
 
   public confirmPasswordReset(code: string, newPassword: string) {
-    confirmPasswordReset(getAuth(app), code, newPassword);
+    return confirmPasswordReset(getAuth(app), code, newPassword);
   }
 
   public async uploadFile(path: string, file: File): Promise<string> {

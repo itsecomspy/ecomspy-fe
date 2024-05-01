@@ -10,7 +10,7 @@ export const filterAtom = atom<{
     text: "1 Year",
   },
   status: {
-    id: 0,
+    id: 1,
     text: "All",
     value: { min: 0, max: 100 },
   },

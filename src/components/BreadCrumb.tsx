@@ -6,14 +6,20 @@ const BreadcrumbWrapper = styled.div`
   column-gap: 8px;
 `;
 
-export const Breadcrumb = ({ array }: { array: string[] }) => {
+export const Breadcrumb = ({
+  url,
+  array,
+}: {
+  url?: string;
+  array: string[];
+}) => {
   return (
     <BreadcrumbWrapper>
       {array.map((arr, i) => {
         let isLast = array.length === i + 1;
         return (
           <Link
-            to={isLast ? "#" : "/trending-markets/"}
+            to={url ? url : isLast ? "#" : "/trending-markets/"}
             key={i}
             className={`${
               isLast

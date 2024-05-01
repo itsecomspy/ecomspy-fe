@@ -22,7 +22,7 @@
   
       "paths": {
         "@assets/*": ["./src/assets/*"],
-        "@modules/*": ["./src/modules/*"],
+        "@components/*": ["./src/components/*"],
         "@shared/*": ["./src/shared/*"],
         "@root/*": ["./*"],
         "@/*": ["./src/*"],
