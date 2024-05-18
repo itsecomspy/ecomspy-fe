@@ -1,0 +1,63 @@
+@media screen and (max-width: 479px) {
+  body {
+    position: relative;
+  }
+}
+
+#root {
+  font-family: "Inter", sans-serif;
+  font-weight: normal;
+  background-color: #010519;
+  color: #ffffff;
+  overflow: clip;
+}
+
+.landing-text-color {
+  background: linear-gradient(
+    114.59deg,
+    #2650ff 0%,
+    #0094ff 53.53%,
+    #0038ff 102.05%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Charts CSS edits */
+g .recharts-cartesian-axis-ticks line {
+  display: none;
+}
+g .recharts-cartesian-axis-ticks text {
+  font-size: 10px;
+  color: #ffffff3d;
+}
+g .recharts-cartesian-axis-ticks:first-child text {
+  display: none;
+}
+
+g .recharts-layer.recharts-pie-sector {
+  outline: none;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+g .recharts-pie-sector .recharts-layer.recharts-active-shape text {
+  fill: white;
+  font-weight: 400;
+  font-size: 14px;
+}
+
+g .recharts-layer.recharts-pie-sector:nth-of-type(1) path:first-of-type {
+  fill: #a015d4;
+}
+g .recharts-layer.recharts-pie-sector:nth-of-type(2) path:first-of-type {
+  fill: #1cddea;
+}
+g .recharts-layer.recharts-pie-sector:nth-of-type(3) path:first-of-type {
+  fill: #2820df;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
