@@ -155,6 +155,7 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
                   status: normalizedStatus,
                   planId: res?.planId || snapData?.subscription?.planId,
                   lookupId: res?.lookupId || snapData?.subscription?.lookupId,
+                  provider: res?.provider || snapData?.subscription?.provider,
                 });
               })
               .catch((err: any) => {

@@ -141,7 +141,10 @@ export default function useBilling() {
       lookupKey?: string;
       subscriptionProvider?: string;
     }) => {
-      const isPolarSubscription = subscriptionProvider === "polar";
+      const isLikelyPolarSubscription =
+        subscriptionProvider === "polar" ||
+        (isPolarProvider && !subscriptionProvider && Boolean(subscriptionId));
+      const isPolarSubscription = isLikelyPolarSubscription;
       if (!isPolarProvider || !isPolarSubscription) {
         return paddle.onCurrentPlanChange({
           uid,
@@ -175,7 +178,12 @@ export default function useBilling() {
       subscription?: any;
     }) => {
       const subscriptionSource = subscription || userDetails?.subscription;
-      const isPolarUser = subscriptionSource?.provider === "polar";
+      const isLikelyPolarUser =
+        subscriptionSource?.provider === "polar" ||
+        (isPolarProvider &&
+          !subscriptionSource?.provider &&
+          Boolean(subscriptionSource?.subscriptionId));
+      const isPolarUser = isLikelyPolarUser;
       if (!isPolarProvider || !isPolarUser) {
         return paddle.onUnsubscribe({ userDetails, user });
       }
