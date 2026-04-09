@@ -139,11 +139,18 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
               uid: user.uid,
             })
               .then((res: any) => {
-                const normalizedStatus = res?.status || (!res?.next_billed_at ? "cancelled" : "active");
+                const normalizedCancelled =
+                  typeof res?.cancelled === "boolean"
+                    ? res.cancelled
+                    : !res?.next_billed_at;
+                const normalizedStatus =
+                  normalizedCancelled
+                    ? "cancelled"
+                    : res?.status || "active";
                 const normalizedEndDate = res?.endDate || (!!res?.canceled_at ? res?.cancel_at : res?.current_billing_period?.ends_at);
                 setSubscriptionData({
                   subscriptionId: snapData?.subscription?.subscriptionId,
-                  cancelled: typeof res?.cancelled === "boolean" ? res.cancelled : !res?.next_billed_at,
+                  cancelled: normalizedCancelled,
                   endDate: normalizedEndDate,
                   status: normalizedStatus,
                   planId: res?.planId || snapData?.subscription?.planId,

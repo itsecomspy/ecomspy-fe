@@ -98,6 +98,7 @@ export const SubPlan = ({
               subscriptionId: userDetails?.subscription?.subscriptionId,
               lookupKey: selectedPlan.lookupId,
               uid: user.uid,
+              subscriptionProvider: userDetails?.subscription?.provider,
             })
           }
         />

@@ -128,8 +128,21 @@ export default function useBilling() {
   );
 
   const onCurrentPlanChange = useCallback(
-    async ({ uid, prorate, subscriptionId, lookupKey }: { uid: string; prorate?: string; subscriptionId?: string; lookupKey?: string }) => {
-      if (!isPolarProvider) {
+    async ({
+      uid,
+      prorate,
+      subscriptionId,
+      lookupKey,
+      subscriptionProvider,
+    }: {
+      uid: string;
+      prorate?: string;
+      subscriptionId?: string;
+      lookupKey?: string;
+      subscriptionProvider?: string;
+    }) => {
+      const isPolarSubscription = subscriptionProvider === "polar";
+      if (!isPolarProvider || !isPolarSubscription) {
         return paddle.onCurrentPlanChange({
           uid,
           prorate: prorate || "prorated_immediately",
@@ -152,8 +165,17 @@ export default function useBilling() {
   );
 
   const onUnsubscribe = useCallback(
-    async ({ userDetails, user }: { userDetails: any; user: any }) => {
-      const isPolarUser = userDetails?.subscription?.provider === "polar";
+    async ({
+      userDetails,
+      user,
+      subscription,
+    }: {
+      userDetails: any;
+      user: any;
+      subscription?: any;
+    }) => {
+      const subscriptionSource = subscription || userDetails?.subscription;
+      const isPolarUser = subscriptionSource?.provider === "polar";
       if (!isPolarProvider || !isPolarUser) {
         return paddle.onUnsubscribe({ userDetails, user });
       }
@@ -162,7 +184,7 @@ export default function useBilling() {
       try {
         await axios.post(resolveUrl("cancelPolarSubscription"), {
           uid: user?.uid,
-          subscriptionId: userDetails?.subscription?.subscriptionId,
+          subscriptionId: subscriptionSource?.subscriptionId,
         });
         location.replace("/settings");
       } finally {

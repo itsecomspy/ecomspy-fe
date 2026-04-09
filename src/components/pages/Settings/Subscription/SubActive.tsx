@@ -52,8 +52,8 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
     setModalOpen(true);
   };
 
-  let subscriptionText =
-    subscription?.status === "cancelled" ? cancelledText[lan] : renewText[lan];
+  const isCancelled = subscription?.cancelled || subscription?.status === "cancelled";
+  let subscriptionText = isCancelled ? cancelledText[lan] : renewText[lan];
 
   return (
     <>
@@ -64,7 +64,7 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
           cancelButtonText={cancelButtonText[lan]}
           actionText={confirmActionText[lan]}
           loading={subscriptionSessionLoading}
-          action={() => onUnsubscribe({ userDetails, user })}
+          action={() => onUnsubscribe({ userDetails, user, subscription })}
         />
       )}
       <div className="p-4 sm:p-0 flex w-full items-center gap-3">
@@ -114,7 +114,7 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
         </PlanWrapper>
 
         <div className="mt-8 px-[20px] ml-auto flex gap-4">
-          {subscription?.status === "cancelled" ? (
+          {isCancelled ? (
             <>
               <Button action={() => setSwitch(true)} text={newplanText[lan]} />
             </>
