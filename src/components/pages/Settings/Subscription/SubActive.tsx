@@ -4,7 +4,7 @@ import { Button } from "@components/Button";
 import { Key } from "react";
 import dayjs from "dayjs/esm/index.js";
 import { plans as priceIds } from "@root/src/utils/subscriptionPlans";
-import usePaddle from "@root/src/hooks/usePaddle";
+import useBilling from "@root/src/hooks/useBilling";
 import React from "react";
 import { Modal } from "@components/Modal";
 import { subscriptionText } from "@root/src/utils/subscriptionPlans";
@@ -46,7 +46,7 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
 
   // Modal for cancel confirmation
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
-  const { onUnsubscribe, subscriptionSessionLoading } = usePaddle();
+  const { onUnsubscribe, subscriptionSessionLoading } = useBilling();
 
   const handleModal = () => {
     setModalOpen(true);

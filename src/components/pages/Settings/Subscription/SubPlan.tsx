@@ -4,7 +4,7 @@ import { useLanguageContext } from "@/context/LanguageContext";
 import { useAuthContext } from "@root/src/context/AuthContext";
 import { subscriptionText } from "@root/src/utils/subscriptionPlans";
 import { Button, Modal } from "@components/index";
-import usePaddle from "@root/src/hooks/usePaddle";
+import useBilling from "@root/src/hooks/useBilling";
 import { ChangePlanModal } from "./ChangePlanModal";
 import { getPlanByLookupId } from "@root/src/utils/subscriptionPlans";
 
@@ -51,13 +51,13 @@ export const SubPlan = ({
 
   const { lan } = useLanguageContext();
   const { userDetails, user } = useAuthContext();
-  const { onCurrentPlanChange, subscriptionSessionLoading } = usePaddle();
+  const { onCurrentPlanChange, subscriptionSessionLoading } = useBilling();
 
   const handleSelected = (plan: any) => {
     setSelectedPlan(plan);
     if (
       userDetails?.subscription?.status === "active" &&
-      userDetails?.subscription?.lookupId !== plan.id
+      userDetails?.subscription?.lookupId !== plan.lookupId
     ) {
       setModalOpen(true);
     } else {
@@ -190,7 +190,7 @@ const plansMonth: any = [
     id: 1,
     title: "starter",
     price: 49,
-    lookupId: import.meta.env.VITE_PADDLE_STARTER_MONTHLY,
+    lookupId: "starter_monthly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     bulletPoints: subscriptionText.starter,
@@ -199,7 +199,7 @@ const plansMonth: any = [
     id: 2,
     title: "premium",
     price: 79,
-    lookupId: import.meta.env.VITE_PADDLE_PREMIUM_MONTHLY,
+    lookupId: "premium_monthly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     popularText: { en: "Popular plan", fr: "Plan populaire" },
@@ -209,7 +209,7 @@ const plansMonth: any = [
     id: 3,
     title: "business",
     price: 99,
-    lookupId: import.meta.env.VITE_PADDLE_BUSINESS_MONTHLY,
+    lookupId: "business_monthly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     popularText: { en: "Popular plan", fr: "Plan populaire" },
@@ -222,7 +222,7 @@ const plansYear: any = [
     id: 1,
     title: "starter",
     price: 348,
-    lookupId: import.meta.env.VITE_PADDLE_STARTER_YEARLY,
+    lookupId: "starter_yearly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     bulletPoints: subscriptionText.starter,
@@ -231,7 +231,7 @@ const plansYear: any = [
     id: 2,
     title: "premium",
     price: 708,
-    lookupId: import.meta.env.VITE_PADDLE_PREMIUM_YEARLY,
+    lookupId: "premium_yearly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     popularText: { en: "Popular plan", fr: "Plan populaire" },
@@ -241,7 +241,7 @@ const plansYear: any = [
     id: 3,
     title: "business",
     price: 948,
-    lookupId: import.meta.env.VITE_PADDLE_BUSINESS_YEARLY,
+    lookupId: "business_yearly",
     perMonthText: { en: "per month", fr: "par mois" },
     buttonText: { en: "select plan", fr: "sélectionnez le plan" },
     popularText: { en: "Popular plan", fr: "Plan populaire" },

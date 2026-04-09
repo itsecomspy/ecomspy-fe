@@ -8,49 +8,42 @@ export const getNextMonth = (evnt?: number) => {
   // @ts-ignore
   return Date.parse(event);
 };
-// import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY
 export const plans = [
   {
     planId: 1,
     price: 49,
     billing: 0,
-    lookupId: import.meta.env.VITE_PADDLE_STARTER_MONTHLY,
-    // priceId: "price_1OzAFJDfQvyRGV9Dtk3XAstg",
+    lookupId: "starter_monthly",
   },
   {
     planId: 1,
     price: 348,
     billing: 1,
-    lookupId: import.meta.env.VITE_PADDLE_STARTER_YEARLY,
-    // priceId: "price_1OzAFwDfQvyRGV9DCnHsZjjx",
+    lookupId: "starter_yearly",
   },
   {
     planId: 2,
     price: 79,
     billing: 0,
-    lookupId: import.meta.env.VITE_PADDLE_PREMIUM_MONTHLY,
-    // priceId: "price_1OzAGKDfQvyRGV9DiZGySlJS",
+    lookupId: "premium_monthly",
   },
   {
     planId: 2,
     price: 708,
     billing: 1,
-    lookupId: import.meta.env.VITE_PADDLE_PREMIUM_YEARLY,
-    // priceId: "price_1OzAGeDfQvyRGV9DHNwoGlm0",
+    lookupId: "premium_yearly",
   },
   {
     planId: 3,
     price: 99,
     billing: 0,
-    lookupId: import.meta.env.VITE_PADDLE_BUSINESS_MONTHLY,
-    // priceId: "price_1OzAGKDfQvyRGV9DiZGySlJS",
+    lookupId: "business_monthly",
   },
   {
     planId: 3,
     price: 948,
     billing: 1,
-    lookupId: import.meta.env.VITE_PADDLE_BUSINESS_YEARLY,
-    // priceId: "price_1OzAGeDfQvyRGV9DHNwoGlm0",
+    lookupId: "business_yearly",
   },
 ];
 

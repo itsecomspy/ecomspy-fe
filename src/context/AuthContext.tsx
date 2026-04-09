@@ -1,7 +1,7 @@
 import React, { createContext, useContext } from "react";
 import firebaseService from "../services/firebase.service";
 import { updateProfile } from "firebase/auth";
-import usePaddle from "../hooks/usePaddle";
+import useBilling from "../hooks/useBilling";
 
 interface UserDataProps {
   email: string;
@@ -19,7 +19,7 @@ const AuthContext = createContext<any | undefined>(undefined);
 
 // create Auth context provider
 export const AuthProvider = ({ children }: React.PropsWithChildren) => {
-  const { retrieveSubscriptionData } = usePaddle();
+  const { retrieveSubscriptionData } = useBilling();
 
   const [user, setUser] = React.useState<any>(null);
   const [userDetails, setUserDetails] = React.useState<any>();
@@ -136,17 +136,18 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
           if (snapData?.subscription) {
             retrieveSubscriptionData({
               subscriptionId: snapData?.subscription?.subscriptionId,
+              uid: user.uid,
             })
               .then((res: any) => {
+                const normalizedStatus = res?.status || (!res?.next_billed_at ? "cancelled" : "active");
+                const normalizedEndDate = res?.endDate || (!!res?.canceled_at ? res?.cancel_at : res?.current_billing_period?.ends_at);
                 setSubscriptionData({
                   subscriptionId: snapData?.subscription?.subscriptionId,
-                  cancelled: !res.next_billed_at,
-                  endDate: !!res.canceled_at
-                    ? res.cancel_at
-                    : res.current_billing_period.ends_at,
-                  status: !res.next_billed_at ? "cancelled" : "active",
-                  planId: snapData?.subscription?.planId,
-                  lookupId: snapData?.subscription?.lookupId,
+                  cancelled: typeof res?.cancelled === "boolean" ? res.cancelled : !res?.next_billed_at,
+                  endDate: normalizedEndDate,
+                  status: normalizedStatus,
+                  planId: res?.planId || snapData?.subscription?.planId,
+                  lookupId: res?.lookupId || snapData?.subscription?.lookupId,
                 });
               })
               .catch((err: any) => {

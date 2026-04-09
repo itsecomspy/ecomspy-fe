@@ -1,0 +1,170 @@
+import React, { useCallback } from "react";
+import axios from "axios";
+import usePaddle from "./usePaddle";
+import firebaseService from "../services/firebase.service";
+
+const billingProvider = (import.meta.env.VITE_BILLING_PROVIDER || "paddle").toLowerCase();
+const isPolarProvider = billingProvider === "polar";
+const defaultFunctionsBase = import.meta.env.VITE_FIREBASE_PROJECT_ID ?
+  `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net` :
+  "";
+const apiBaseUrl = (import.meta.env.VITE_BILLING_API_BASE_URL || defaultFunctionsBase).replace(/\/$/, "");
+
+const resolveUrl = (path: string) => `${apiBaseUrl}/${path}`;
+
+export default function useBilling() {
+  const paddle = usePaddle();
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [subscriptionSessionLoading, setSubscriptionSessionLoading] = React.useState<boolean>(false);
+  const [successComplete, setSuccessComplete] = React.useState<boolean>(false);
+
+  const onPaymentIntent = useCallback(
+    async ({ lookupKey, navigate, uid, email, customerName }: { lookupKey: string; navigate: any; uid?: string; email?: string; customerName?: string }) => {
+      if (!isPolarProvider) {
+        return paddle.onPaymentIntent({ lookupKey, navigate });
+      }
+
+      if (!uid) {
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data } = await axios.post(resolveUrl("createPolarCheckoutSession"), {
+          uid,
+          lookupKey,
+          email,
+          customerName,
+        });
+
+        localStorage.setItem(
+          "polar_checkout_pending",
+          JSON.stringify({
+            uid,
+            lookupKey,
+            checkoutId: data?.checkoutId,
+            createdAt: Date.now(),
+          })
+        );
+
+        if (data?.checkoutUrl) {
+          location.assign(data.checkoutUrl);
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [paddle]
+  );
+
+  const onSuccess = useCallback(
+    async ({ uid, checkoutId, lookupKey, txnId }: { uid: string; checkoutId?: string; lookupKey?: string; txnId?: string }) => {
+      if (!isPolarProvider) {
+        return paddle.onSuccess({
+          uid,
+          txnId: txnId || "",
+          lookupKey: lookupKey || "",
+        });
+      }
+
+      if (!uid || !checkoutId || !lookupKey) {
+        return;
+      }
+
+      setSubscriptionSessionLoading(true);
+      try {
+        await firebaseService.getDocument(`users/${uid}`);
+        await axios.post(resolveUrl("confirmPolarCheckoutSession"), {
+          uid,
+          checkoutId,
+          lookupKey,
+        });
+
+        setSuccessComplete(true);
+        setTimeout(() => {
+          localStorage.removeItem("polar_checkout_pending");
+          location.replace("/dashboard");
+        }, 2000);
+      } finally {
+        setSubscriptionSessionLoading(false);
+      }
+    },
+    [paddle]
+  );
+
+  const retrieveSubscriptionData = useCallback(
+    async ({ subscriptionId, uid }: { subscriptionId?: string; uid?: string }) => {
+      if (!isPolarProvider) {
+        return paddle.retrieveSubscriptionData({
+          subscriptionId: subscriptionId || "",
+        });
+      }
+
+      if (!uid) {
+        return null;
+      }
+
+      const { data } = await axios.get(resolveUrl("getPolarSubscription"), {
+        params: { uid },
+      });
+      return data;
+    },
+    [paddle]
+  );
+
+  const onCurrentPlanChange = useCallback(
+    async ({ uid, prorate, subscriptionId, lookupKey }: { uid: string; prorate?: string; subscriptionId?: string; lookupKey?: string }) => {
+      if (!isPolarProvider) {
+        return paddle.onCurrentPlanChange({
+          uid,
+          prorate: prorate || "prorated_immediately",
+          subscriptionId: subscriptionId || "",
+          lookupKey: lookupKey || "",
+        });
+      }
+
+      setSubscriptionSessionLoading(true);
+      try {
+        const { data } = await axios.post(resolveUrl("createPolarPortalSession"), { uid });
+        if (data?.customerPortalUrl) {
+          location.assign(data.customerPortalUrl);
+        }
+      } finally {
+        setSubscriptionSessionLoading(false);
+      }
+    },
+    [paddle]
+  );
+
+  const onUnsubscribe = useCallback(
+    async ({ userDetails, user }: { userDetails: any; user: any }) => {
+      const isPolarUser = userDetails?.subscription?.provider === "polar";
+      if (!isPolarProvider || !isPolarUser) {
+        return paddle.onUnsubscribe({ userDetails, user });
+      }
+
+      setSubscriptionSessionLoading(true);
+      try {
+        await axios.post(resolveUrl("cancelPolarSubscription"), {
+          uid: user?.uid,
+          subscriptionId: userDetails?.subscription?.subscriptionId,
+        });
+        location.replace("/settings");
+      } finally {
+        setSubscriptionSessionLoading(false);
+      }
+    },
+    [paddle]
+  );
+
+  return {
+    onPaymentIntent,
+    onSuccess,
+    loading: isPolarProvider ? loading : paddle.loading,
+    subscriptionSessionLoading: isPolarProvider ? subscriptionSessionLoading : paddle.subscriptionSessionLoading,
+    successComplete: isPolarProvider ? successComplete : paddle.successComplete,
+    onCurrentPlanChange,
+    onUnsubscribe,
+    retrieveSubscriptionData,
+  };
+}

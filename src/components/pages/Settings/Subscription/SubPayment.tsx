@@ -1,16 +1,24 @@
 import React from "react";
-import usePaddle from "@root/src/hooks/usePaddle";
+import useBilling from "@root/src/hooks/useBilling";
 import { Loader } from "@components/Loader";
 import { useNavigate } from "react-router-dom";
+import { useAuthContext } from "@root/src/context/AuthContext";
 
 export const SubPayment = ({ plan }: { plan: any }) => {
   const navigate = useNavigate();
+  const { user, userDetails } = useAuthContext();
 
-  // Handle stripe checkout and payment
-  const { onPaymentIntent } = usePaddle();
+  // Handle billing checkout
+  const { onPaymentIntent } = useBilling();
 
   React.useEffect(() => {
-    onPaymentIntent({ lookupKey: plan?.lookupId, navigate });
+    onPaymentIntent({
+      lookupKey: plan?.lookupId,
+      navigate,
+      uid: user?.uid,
+      email: userDetails?.email,
+      customerName: userDetails?.fullName,
+    });
   }, []);
 
   return (
