@@ -156,7 +156,28 @@ export default function useBilling() {
 
       setSubscriptionSessionLoading(true);
       try {
-        const { data } = await axios.post(resolveUrl("createPolarPortalSession"), { uid });
+        await axios.post(resolveUrl("changePolarPlan"), {
+          uid,
+          subscriptionId,
+          lookupKey,
+          prorate: prorate || "prorated_immediately",
+        });
+        location.reload();
+      } finally {
+        setSubscriptionSessionLoading(false);
+      }
+    },
+    [paddle]
+  );
+
+  const onOpenPortal = useCallback(
+    async ({ uid }: { uid: string }) => {
+      if (!isPolarProvider || !uid) return;
+      setSubscriptionSessionLoading(true);
+      try {
+        const { data } = await axios.post(resolveUrl("createPolarPortalSession"), {
+          uid,
+        });
         if (data?.customerPortalUrl) {
           location.assign(data.customerPortalUrl);
         }
@@ -164,7 +185,7 @@ export default function useBilling() {
         setSubscriptionSessionLoading(false);
       }
     },
-    [paddle]
+    []
   );
 
   const onUnsubscribe = useCallback(
@@ -209,6 +230,7 @@ export default function useBilling() {
     subscriptionSessionLoading: isPolarProvider ? subscriptionSessionLoading : paddle.subscriptionSessionLoading,
     successComplete: isPolarProvider ? successComplete : paddle.successComplete,
     onCurrentPlanChange,
+    onOpenPortal,
     onUnsubscribe,
     retrieveSubscriptionData,
   };

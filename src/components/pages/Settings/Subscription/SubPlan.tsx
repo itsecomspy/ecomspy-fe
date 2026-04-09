@@ -51,7 +51,8 @@ export const SubPlan = ({
 
   const { lan } = useLanguageContext();
   const { userDetails, user } = useAuthContext();
-  const { onCurrentPlanChange, subscriptionSessionLoading } = useBilling();
+  const { onCurrentPlanChange, onOpenPortal, subscriptionSessionLoading } =
+    useBilling();
 
   const handleSelected = (plan: any) => {
     setSelectedPlan(plan);
@@ -64,12 +65,7 @@ export const SubPlan = ({
     // For canceled Polar subscriptions, the source of truth is the customer
     // portal (uncancel, switch, schedule changes), not opening a new checkout.
     if (isPolarCancelledSubscription) {
-      return onCurrentPlanChange({
-        subscriptionId: userDetails?.subscription?.subscriptionId,
-        lookupKey: plan.lookupId,
-        uid: user.uid,
-        subscriptionProvider: userDetails?.subscription?.provider,
-      });
+      return onOpenPortal({ uid: user.uid });
     }
 
     if (
