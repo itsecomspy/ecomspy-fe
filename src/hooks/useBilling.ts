@@ -74,11 +74,28 @@ export default function useBilling() {
       setSubscriptionSessionLoading(true);
       try {
         await firebaseService.getDocument(`users/${uid}`);
-        await axios.post(resolveUrl("confirmPolarCheckoutSession"), {
-          uid,
-          checkoutId,
-          lookupKey,
-        });
+        let confirmed = false;
+
+        // Polar checkout -> subscription linkage can be eventually consistent.
+        // Retry confirmation briefly before considering it a failed sync.
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          const { data } = await axios.post(resolveUrl("confirmPolarCheckoutSession"), {
+            uid,
+            checkoutId,
+            lookupKey,
+          });
+
+          if (data?.subscriptionId || data?.status === "active" || data?.status === "cancelled") {
+            confirmed = true;
+            break;
+          }
+
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
+
+        if (!confirmed) {
+          throw new Error("Polar confirmation is still pending");
+        }
 
         setSuccessComplete(true);
         setTimeout(() => {
