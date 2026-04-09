@@ -76,8 +76,6 @@ export default function useBilling() {
         await firebaseService.getDocument(`users/${uid}`);
         let confirmed = false;
 
-        // Polar checkout -> subscription linkage can be eventually consistent.
-        // Retry confirmation briefly before considering it a failed sync.
         for (let attempt = 0; attempt < 8; attempt += 1) {
           const { data } = await axios.post(resolveUrl("confirmPolarCheckoutSession"), {
             uid,
