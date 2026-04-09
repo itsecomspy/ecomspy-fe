@@ -46,7 +46,8 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
 
   // Modal for cancel confirmation
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
-  const { onUnsubscribe, subscriptionSessionLoading } = useBilling();
+  const { onUnsubscribe, onCurrentPlanChange, subscriptionSessionLoading } =
+    useBilling();
 
   const handleModal = () => {
     setModalOpen(true);
@@ -116,6 +117,19 @@ export const SubActive = ({ subscription, setSwitch }: any) => {
         <div className="mt-8 px-[20px] ml-auto flex gap-4">
           {isCancelled ? (
             <>
+              <Button
+                text={manageText[lan]}
+                backgroundColor="white"
+                color="black"
+                action={() =>
+                  onCurrentPlanChange({
+                    uid: user?.uid,
+                    subscriptionId: subscription?.subscriptionId,
+                    lookupKey: subscription?.lookupId,
+                    subscriptionProvider: subscription?.provider,
+                  })
+                }
+              />
               <Button action={() => setSwitch(true)} text={newplanText[lan]} />
             </>
           ) : (
@@ -196,4 +210,8 @@ const confirmActionText: any = {
 const newplanText: any = {
   en: "Select New Plan",
   fr: "Sélectionnez un nouveau forfait",
+};
+const manageText: any = {
+  en: "Manage Subscription",
+  fr: "Gérer l'abonnement",
 };

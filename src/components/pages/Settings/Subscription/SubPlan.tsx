@@ -55,6 +55,23 @@ export const SubPlan = ({
 
   const handleSelected = (plan: any) => {
     setSelectedPlan(plan);
+    const isPolarCancelledSubscription =
+      userDetails?.subscription?.provider === "polar" &&
+      Boolean(userDetails?.subscription?.subscriptionId) &&
+      (userDetails?.subscription?.status === "cancelled" ||
+        userDetails?.subscription?.cancelled);
+
+    // For canceled Polar subscriptions, the source of truth is the customer
+    // portal (uncancel, switch, schedule changes), not opening a new checkout.
+    if (isPolarCancelledSubscription) {
+      return onCurrentPlanChange({
+        subscriptionId: userDetails?.subscription?.subscriptionId,
+        lookupKey: plan.lookupId,
+        uid: user.uid,
+        subscriptionProvider: userDetails?.subscription?.provider,
+      });
+    }
+
     if (
       userDetails?.subscription?.status === "active" &&
       userDetails?.subscription?.lookupId !== plan.lookupId
