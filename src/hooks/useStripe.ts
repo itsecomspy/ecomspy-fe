@@ -4,6 +4,12 @@ import firebaseService from "../services/firebase.service";
 import { getPlanByLookupId } from "../utils/subscriptionPlans";
 import axios from "axios";
 
+const functionsBaseUrl = (
+  import.meta.env.VITE_FUNCTIONS_BASE_URL ||
+  `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net`
+).replace(/\/$/, "");
+const resolveUrl = (path: string) => `${functionsBaseUrl}/${path}`;
+
 const headers = {
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Allow-Origin": "*",
@@ -40,7 +46,7 @@ export default function useStripe() {
   const onPaymentIntent = React.useCallback(
     async ({ lookupKey }: { lookupKey: string }) => {
       return await axios
-        .post("https://subscribetoplan-ykxdfh7koq-uc.a.run.app/", {
+        .post(resolveUrl("subscribeToPlan"), {
           params: {
             lookupKey,
           },
@@ -98,7 +104,7 @@ export default function useStripe() {
     async ({ userDetails, user }: { userDetails: any; user: any }) => {
       setSubscriptionSessionLoading(true);
       return await axios
-        .get("https://unsubscribefromplan-ykxdfh7koq-uc.a.run.app/", {
+        .get(resolveUrl("unsubscribeFromPlan"), {
           params: {
             subscriptionId: userDetails?.subscription?.subscriptionId,
             userId: user.uid,
@@ -125,7 +131,7 @@ export default function useStripe() {
   const retrieveSessionData = React.useCallback(
     async ({ sessionId: sessionId }: { sessionId: string }) => {
       return await axios
-        .get("https://retrievesessiondata-ykxdfh7koq-uc.a.run.app/", {
+        .get(resolveUrl("retrieveSessionData"), {
           params: {
             sessionId,
           },
@@ -144,7 +150,7 @@ export default function useStripe() {
   const retreiveSubscription = React.useCallback(
     async ({ subscriptionId: subscriptionId }: { subscriptionId: string }) => {
       return await axios
-        .get("https://retrievecurrentsubscription-ykxdfh7koq-uc.a.run.app/", {
+        .get(resolveUrl("retrieveCurrentSubscription"), {
           params: {
             subscriptionId,
           },

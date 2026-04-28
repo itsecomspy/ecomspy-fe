@@ -2,6 +2,7 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   createUserWithEmailAndPassword,
+  connectAuthEmulator,
   signInWithPopup,
   GoogleAuthProvider,
   getAuth,
@@ -19,6 +20,7 @@ import {
 import {
   addDoc,
   collection,
+  connectFirestoreEmulator,
   doc,
   DocumentReference,
   DocumentSnapshot,
@@ -41,6 +43,7 @@ import {
   getCountFromServer,
 } from "firebase/firestore";
 import {
+  connectDatabaseEmulator,
   getDatabase,
   ref as dbRef,
   query as dbQuery,
@@ -57,9 +60,11 @@ import {
 } from "firebase/storage";
 import {
   HttpsCallableResult,
+  connectFunctionsEmulator,
   getFunctions,
   httpsCallable,
 } from "firebase/functions";
+import { connectStorageEmulator } from "firebase/storage";
 
 const app = !getApps().length
   ? initializeApp({
@@ -73,6 +78,50 @@ const app = !getApps().length
       measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID ?? "",
     })
   : getApp();
+
+const useFirebaseEmulators =
+  (import.meta.env.VITE_USE_FIREBASE_EMULATORS || "false").toLowerCase() ===
+  "true";
+const emulatorHost = import.meta.env.VITE_FIREBASE_EMULATOR_HOST || "127.0.0.1";
+const emulatorPorts = {
+  auth: Number(import.meta.env.VITE_FIREBASE_AUTH_EMULATOR_PORT || "9099"),
+  firestore: Number(
+    import.meta.env.VITE_FIREBASE_FIRESTORE_EMULATOR_PORT || "8080"
+  ),
+  functions: Number(
+    import.meta.env.VITE_FIREBASE_FUNCTIONS_EMULATOR_PORT || "5001"
+  ),
+  database: Number(
+    import.meta.env.VITE_FIREBASE_DATABASE_EMULATOR_PORT || "9000"
+  ),
+  storage: Number(import.meta.env.VITE_FIREBASE_STORAGE_EMULATOR_PORT || "9199"),
+};
+
+if (useFirebaseEmulators) {
+  const auth = getAuth(app);
+  const firestore = getFirestore(app);
+  const functions = getFunctions(app);
+  const database = getDatabase(app);
+  const storage = getStorage(app);
+
+  try {
+    connectAuthEmulator(auth, `http://${emulatorHost}:${emulatorPorts.auth}`, {
+      disableWarnings: true,
+    });
+  } catch (_error) {}
+  try {
+    connectFirestoreEmulator(firestore, emulatorHost, emulatorPorts.firestore);
+  } catch (_error) {}
+  try {
+    connectFunctionsEmulator(functions, emulatorHost, emulatorPorts.functions);
+  } catch (_error) {}
+  try {
+    connectDatabaseEmulator(database, emulatorHost, emulatorPorts.database);
+  } catch (_error) {}
+  try {
+    connectStorageEmulator(storage, emulatorHost, emulatorPorts.storage);
+  } catch (_error) {}
+}
 
 class FirebaseService {
   //private app: FirebaseApp = !getApps().length

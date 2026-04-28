@@ -1,6 +1,12 @@
 import React from "react";
 import axios from "axios";
 
+const functionsBaseUrl = (
+  import.meta.env.VITE_FUNCTIONS_BASE_URL ||
+  `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net`
+).replace(/\/$/, "");
+const resolveUrl = (path: string) => `${functionsBaseUrl}/${path}`;
+
 const headers = {
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Allow-Origin": "*",
@@ -39,7 +45,7 @@ export default function useTrends() {
       setTrendLoading(true);
       const setDuration = duration === "forecast" ? "1year" : duration;
       return await axios
-        .get("https://gettrenddata-ykxdfh7koq-uc.a.run.app", {
+        .get(resolveUrl("getTrendData"), {
           params: {
             page,
             sort,
@@ -72,7 +78,7 @@ export default function useTrends() {
     }) => {
       setKeywordLoading(true);
       return await axios
-        .get("https://getkeyworddata-ykxdfh7koq-uc.a.run.app", {
+        .get(resolveUrl("getKeywordData"), {
           params: {
             keyword,
             collection,
@@ -103,7 +109,7 @@ export default function useTrends() {
     }) => {
       setRelatedTrendsLoading(true);
       return await axios
-        .get("https://getrelatedtrends-ykxdfh7koq-uc.a.run.app", {
+        .get(resolveUrl("getRelatedTrends"), {
           params: {
             keyword,
             collection,

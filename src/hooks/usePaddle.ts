@@ -4,6 +4,12 @@ import firebaseService from "../services/firebase.service";
 import { getPlanByLookupId } from "../utils/subscriptionPlans";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 
+const functionsBaseUrl = (
+  import.meta.env.VITE_FUNCTIONS_BASE_URL ||
+  `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net`
+).replace(/\/$/, "");
+const resolveUrl = (path: string) => `${functionsBaseUrl}/${path}`;
+
 const headers = {
   "Access-Control-Allow-Headers": "*",
   "Access-Control-Allow-Origin": "*",
@@ -94,15 +100,12 @@ export default function usePaddle() {
   const retrieveTransactionData = React.useCallback(
     async ({ txnId }: { txnId: string }) => {
       return await axios
-        .get(
-          "https://retrievetransactiondata-ykxdfh7koq-uc.a.run.app",
-          {
-            params: {
-              txnId,
-            },
-            headers: headers,
-          }
-        )
+        .get(resolveUrl("retrieveTransactionData"), {
+          params: {
+            txnId,
+          },
+          headers: headers,
+        })
         .then((res) => {
           return res.data;
         })
@@ -116,15 +119,12 @@ export default function usePaddle() {
   const retrieveSubscriptionData = React.useCallback(
     async ({ subscriptionId }: { subscriptionId: string }) => {
       return await axios
-        .get(
-          "https://retrievecurrentsubscription-ykxdfh7koq-uc.a.run.app",
-          {
-            params: {
-              subscriptionId,
-            },
-            headers: headers,
-          }
-        )
+        .get(resolveUrl("retrieveCurrentSubscription"), {
+          params: {
+            subscriptionId,
+          },
+          headers: headers,
+        })
         .then((res) => {
           return res.data;
         })
@@ -150,21 +150,19 @@ export default function usePaddle() {
       setSubscriptionSessionLoading(true);
       const planData = getPlanByLookupId(lookupKey);
       return await axios
-        .get(
-          "https://currentplanchange-ykxdfh7koq-uc.a.run.app",
-          {
-            params: {
-              prorate,
-              subscriptionId,
-              priceId: lookupKey,
-              uid,
-              planUpdate: {
-                ...planData,
-              },
+        .get(resolveUrl("currentPlanChange"), {
+          params: {
+            prorate,
+            subscriptionId,
+            priceId: lookupKey,
+            uid,
+            planUpdate: {
+              ...planData,
             },
-            headers: headers,
           }
-        )
+          ,
+          headers: headers,
+        })
         .then(() => {
           location.reload();
         })
@@ -179,20 +177,17 @@ export default function usePaddle() {
     async ({ userDetails, user }: { userDetails: any; user: any }) => {
       setSubscriptionSessionLoading(true);
       return await axios
-        .get(
-          "https://unsubscribefromplan-ykxdfh7koq-uc.a.run.app",
-          {
-            params: {
-              subscriptionId: userDetails?.subscription?.subscriptionId,
-              userId: user.uid,
-            },
-            headers: {
-              "Access-Control-Allow-Headers": "*",
-              "Access-Control-Allow-Origin": "*",
-              "Access-Control-Allow-Methods": "*",
-            },
-          }
-        )
+        .get(resolveUrl("unsubscribeFromPlan"), {
+          params: {
+            subscriptionId: userDetails?.subscription?.subscriptionId,
+            userId: user.uid,
+          },
+          headers: {
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+          },
+        })
         .then(() => {
           location.replace("/settings");
         })

@@ -5,12 +5,27 @@ import firebaseService from "../services/firebase.service";
 
 const billingProvider = (import.meta.env.VITE_BILLING_PROVIDER || "paddle").toLowerCase();
 const isPolarProvider = billingProvider === "polar";
+const isDodoProvider = billingProvider === "dodo";
 const defaultFunctionsBase = import.meta.env.VITE_FIREBASE_PROJECT_ID ?
   `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net` :
   "";
-const apiBaseUrl = (import.meta.env.VITE_BILLING_API_BASE_URL || defaultFunctionsBase).replace(/\/$/, "");
+const functionsBaseUrl = import.meta.env.VITE_FUNCTIONS_BASE_URL || "";
+const apiBaseUrl = (
+  import.meta.env.VITE_BILLING_API_BASE_URL ||
+  functionsBaseUrl ||
+  defaultFunctionsBase
+).replace(/\/$/, "");
 
 const resolveUrl = (path: string) => `${apiBaseUrl}/${path}`;
+
+const getManagedProvider = (subscriptionProvider?: string, hasSubscription?: boolean) => {
+  if (subscriptionProvider === "polar") return "polar";
+  if (subscriptionProvider === "dodo") return "dodo";
+  if (isPolarProvider) return "polar";
+  if (isDodoProvider) return "dodo";
+  if (hasSubscription) return "dodo";
+  return "paddle";
+};
 
 export default function useBilling() {
   const paddle = usePaddle();
@@ -20,7 +35,7 @@ export default function useBilling() {
 
   const onPaymentIntent = useCallback(
     async ({ lookupKey, navigate, uid, email, customerName }: { lookupKey: string; navigate: any; uid?: string; email?: string; customerName?: string }) => {
-      if (!isPolarProvider) {
+      if (!isPolarProvider && !isDodoProvider) {
         return paddle.onPaymentIntent({ lookupKey, navigate });
       }
 
@@ -30,7 +45,14 @@ export default function useBilling() {
 
       setLoading(true);
       try {
-        const { data } = await axios.post(resolveUrl("createPolarCheckoutSession"), {
+        const createPath = isPolarProvider ?
+          "createPolarCheckoutSession" :
+          "createDodoCheckoutSession";
+        const localStorageKey = isPolarProvider ?
+          "polar_checkout_pending" :
+          "dodo_checkout_pending";
+
+        const { data } = await axios.post(resolveUrl(createPath), {
           uid,
           lookupKey,
           email,
@@ -38,11 +60,11 @@ export default function useBilling() {
         });
 
         localStorage.setItem(
-          "polar_checkout_pending",
+          localStorageKey,
           JSON.stringify({
             uid,
             lookupKey,
-            checkoutId: data?.checkoutId,
+            checkoutId: data?.checkoutId || data?.sessionId,
             createdAt: Date.now(),
           })
         );
@@ -59,7 +81,7 @@ export default function useBilling() {
 
   const onSuccess = useCallback(
     async ({ uid, checkoutId, lookupKey, txnId }: { uid: string; checkoutId?: string; lookupKey?: string; txnId?: string }) => {
-      if (!isPolarProvider) {
+      if (!isPolarProvider && !isDodoProvider) {
         return paddle.onSuccess({
           uid,
           txnId: txnId || "",
@@ -75,9 +97,15 @@ export default function useBilling() {
       try {
         await firebaseService.getDocument(`users/${uid}`);
         let confirmed = false;
+        const confirmPath = isPolarProvider ?
+          "confirmPolarCheckoutSession" :
+          "confirmDodoCheckoutSession";
+        const pendingStorageKey = isPolarProvider ?
+          "polar_checkout_pending" :
+          "dodo_checkout_pending";
 
         for (let attempt = 0; attempt < 8; attempt += 1) {
-          const { data } = await axios.post(resolveUrl("confirmPolarCheckoutSession"), {
+          const { data } = await axios.post(resolveUrl(confirmPath), {
             uid,
             checkoutId,
             lookupKey,
@@ -92,12 +120,17 @@ export default function useBilling() {
         }
 
         if (!confirmed) {
-          throw new Error("Polar confirmation is still pending");
+          // Dodo/Polar can take a moment to finalize; avoid trapping users.
+          const providerLabel = isDodoProvider ? "Dodo" : "Polar";
+          console.warn(`${providerLabel} confirmation is still pending`);
+          localStorage.removeItem(pendingStorageKey);
+          location.replace("/dashboard");
+          return;
         }
 
         setSuccessComplete(true);
         setTimeout(() => {
-          localStorage.removeItem("polar_checkout_pending");
+          localStorage.removeItem(pendingStorageKey);
           location.replace("/dashboard");
         }, 2000);
       } finally {
@@ -109,7 +142,7 @@ export default function useBilling() {
 
   const retrieveSubscriptionData = useCallback(
     async ({ subscriptionId, uid }: { subscriptionId?: string; uid?: string }) => {
-      if (!isPolarProvider) {
+      if (!isPolarProvider && !isDodoProvider) {
         return paddle.retrieveSubscriptionData({
           subscriptionId: subscriptionId || "",
         });
@@ -119,7 +152,8 @@ export default function useBilling() {
         return null;
       }
 
-      const { data } = await axios.get(resolveUrl("getPolarSubscription"), {
+      const path = isPolarProvider ? "getPolarSubscription" : "getDodoSubscription";
+      const { data } = await axios.get(resolveUrl(path), {
         params: { uid },
       });
       return data;
@@ -141,11 +175,8 @@ export default function useBilling() {
       lookupKey?: string;
       subscriptionProvider?: string;
     }) => {
-      const isLikelyPolarSubscription =
-        subscriptionProvider === "polar" ||
-        (isPolarProvider && !subscriptionProvider && Boolean(subscriptionId));
-      const isPolarSubscription = isLikelyPolarSubscription;
-      if (!isPolarProvider || !isPolarSubscription) {
+      const managedProvider = getManagedProvider(subscriptionProvider, Boolean(subscriptionId));
+      if (managedProvider === "paddle") {
         return paddle.onCurrentPlanChange({
           uid,
           prorate: prorate || "prorated_immediately",
@@ -154,9 +185,13 @@ export default function useBilling() {
         });
       }
 
+      const path = managedProvider === "polar" ?
+        "changePolarPlan" :
+        "changeDodoPlan";
+
       setSubscriptionSessionLoading(true);
       try {
-        await axios.post(resolveUrl("changePolarPlan"), {
+        await axios.post(resolveUrl(path), {
           uid,
           subscriptionId,
           lookupKey,
@@ -171,11 +206,17 @@ export default function useBilling() {
   );
 
   const onOpenPortal = useCallback(
-    async ({ uid }: { uid: string }) => {
-      if (!isPolarProvider || !uid) return;
+    async ({ uid, subscriptionProvider }: { uid: string; subscriptionProvider?: string }) => {
+      if (!uid) return;
+      const managedProvider = getManagedProvider(subscriptionProvider, true);
+      if (managedProvider === "paddle") return;
+
       setSubscriptionSessionLoading(true);
       try {
-        const { data } = await axios.post(resolveUrl("createPolarPortalSession"), {
+        const path = managedProvider === "polar" ?
+          "createPolarPortalSession" :
+          "createDodoPortalSession";
+        const { data } = await axios.post(resolveUrl(path), {
           uid,
         });
         if (data?.customerPortalUrl) {
@@ -199,19 +240,20 @@ export default function useBilling() {
       subscription?: any;
     }) => {
       const subscriptionSource = subscription || userDetails?.subscription;
-      const isLikelyPolarUser =
-        subscriptionSource?.provider === "polar" ||
-        (isPolarProvider &&
-          !subscriptionSource?.provider &&
-          Boolean(subscriptionSource?.subscriptionId));
-      const isPolarUser = isLikelyPolarUser;
-      if (!isPolarProvider || !isPolarUser) {
+      const managedProvider = getManagedProvider(
+        subscriptionSource?.provider,
+        Boolean(subscriptionSource?.subscriptionId)
+      );
+      if (managedProvider === "paddle") {
         return paddle.onUnsubscribe({ userDetails, user });
       }
 
       setSubscriptionSessionLoading(true);
       try {
-        await axios.post(resolveUrl("cancelPolarSubscription"), {
+        const path = managedProvider === "polar" ?
+          "cancelPolarSubscription" :
+          "cancelDodoSubscription";
+        await axios.post(resolveUrl(path), {
           uid: user?.uid,
           subscriptionId: subscriptionSource?.subscriptionId,
         });
@@ -226,9 +268,9 @@ export default function useBilling() {
   return {
     onPaymentIntent,
     onSuccess,
-    loading: isPolarProvider ? loading : paddle.loading,
-    subscriptionSessionLoading: isPolarProvider ? subscriptionSessionLoading : paddle.subscriptionSessionLoading,
-    successComplete: isPolarProvider ? successComplete : paddle.successComplete,
+    loading: (isPolarProvider || isDodoProvider) ? loading : paddle.loading,
+    subscriptionSessionLoading: (isPolarProvider || isDodoProvider) ? subscriptionSessionLoading : paddle.subscriptionSessionLoading,
+    successComplete: (isPolarProvider || isDodoProvider) ? successComplete : paddle.successComplete,
     onCurrentPlanChange,
     onOpenPortal,
     onUnsubscribe,

@@ -4,6 +4,12 @@ import { useAuthContext } from "../context/AuthContext";
 import firebaseService from "../services/firebase.service";
 import { useNavigate } from "react-router-dom";
 
+const functionsBaseUrl = (
+  import.meta.env.VITE_FUNCTIONS_BASE_URL ||
+  `https://us-central1-${import.meta.env.VITE_FIREBASE_PROJECT_ID}.cloudfunctions.net`
+).replace(/\/$/, "");
+const resolveUrl = (path: string) => `${functionsBaseUrl}/${path}`;
+
 export default function useSearch() {
   let navigate = useNavigate();
   const { userDetails, user } = useAuthContext();
@@ -45,7 +51,7 @@ export default function useSearch() {
         ? 10
         : searchDetails?.count - 1;
         return await axios
-          .get("https://searchkeyword-ykxdfh7koq-uc.a.run.app", {
+          .get(resolveUrl("searchKeyword"), {
             params: {
               keyword,
               userId: user?.uid,
