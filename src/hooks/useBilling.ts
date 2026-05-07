@@ -111,7 +111,7 @@ export default function useBilling() {
             lookupKey,
           });
 
-          if (data?.subscriptionId || data?.status === "active" || data?.status === "cancelled") {
+          if (data?.subscriptionId || data?.status === "active") {
             confirmed = true;
             break;
           }
@@ -120,11 +120,12 @@ export default function useBilling() {
         }
 
         if (!confirmed) {
-          // Dodo/Polar can take a moment to finalize; avoid trapping users.
+          // Treat unresolved/failed checkouts as unsuccessful and route users
+          // back to subscription settings instead of granting app access.
           const providerLabel = isDodoProvider ? "Dodo" : "Polar";
           console.warn(`${providerLabel} confirmation is still pending`);
           localStorage.removeItem(pendingStorageKey);
-          location.replace("/dashboard");
+          location.replace("/settings?canceled=true");
           return;
         }
 
