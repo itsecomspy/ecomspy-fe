@@ -14,29 +14,59 @@ export const SubsciptionSuccess = () => {
   const { onSuccess, successComplete } = useBilling();
   const location = useLocation();
   const { user } = useAuthContext();
+  const routerSearchParams = new URLSearchParams(location.search);
+  const browserSearchParams = new URLSearchParams(window.location.search);
+  const paymentStatus = (
+    routerSearchParams.get("status") ||
+    browserSearchParams.get("status") ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+  const isFailedPayment = paymentStatus === "failed";
 
   React.useEffect(() => {
+    if (isFailedPayment) {
+      localStorage.removeItem(pendingCheckoutStorageKey);
+      const timeout = setTimeout(() => {
+        window.location.replace("/settings?canceled=true");
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+
     if (user?.uid) {
-      const searchParams = new URLSearchParams(location.search);
-      const checkoutIdFromQuery = searchParams.get("session_id") ||
-        searchParams.get("checkout_id") ||
-        searchParams.get("checkoutId");
+      const checkoutIdFromQuery = routerSearchParams.get("session_id") ||
+        routerSearchParams.get("checkout_id") ||
+        routerSearchParams.get("checkoutId") ||
+        browserSearchParams.get("session_id") ||
+        browserSearchParams.get("checkout_id") ||
+        browserSearchParams.get("checkoutId");
       const pendingCheckout = localStorage.getItem(pendingCheckoutStorageKey);
       const parsedPending = pendingCheckout ? JSON.parse(pendingCheckout) : null;
 
-      const uid = user.uid;
       onSuccess({
-        uid,
+        uid: user.uid,
         txnId: location?.state?.txnId,
         checkoutId: checkoutIdFromQuery || parsedPending?.checkoutId,
         lookupKey: location?.state?.priceId || parsedPending?.lookupKey,
       });
     }
-  }, [user]);
+  }, [isFailedPayment, user?.uid, location.search, location?.state?.txnId, location?.state?.priceId]);
 
   return (
     <div className="h-screen w-screen flex items-center justify-center">
-      {successComplete ? <Checkmark color="#3A44E4" size="100" /> : <Loader />}
+      {isFailedPayment ? (
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-[100px] h-[100px] rounded-full border-4 border-[#FF4D4F] text-[#FF4D4F] flex items-center justify-center text-[56px] leading-none font-medium">
+            X
+          </div>
+          <p className="text-[#FF4D4F] text-[16px] font-medium">Payment failed</p>
+        </div>
+      ) : successComplete ? (
+        <Checkmark color="#3A44E4" size="100" />
+      ) : (
+        <Loader />
+      )}
     </div>
   );
 };
