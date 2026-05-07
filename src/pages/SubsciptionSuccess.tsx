@@ -16,21 +16,14 @@ export const SubsciptionSuccess = () => {
   const { user } = useAuthContext();
   const routerSearchParams = new URLSearchParams(location.search);
   const browserSearchParams = new URLSearchParams(window.location.search);
-  const paymentStatus = (
-    routerSearchParams.get("status") ||
-    browserSearchParams.get("status") ||
-    ""
-  )
-    .trim()
-    .toLowerCase();
-  const isFailedPayment = paymentStatus === "failed";
+  const isFailedPayment = window.location.href.toLowerCase().includes("status=failed");
 
   React.useEffect(() => {
     if (isFailedPayment) {
       localStorage.removeItem(pendingCheckoutStorageKey);
       const timeout = setTimeout(() => {
         window.location.replace("/settings?canceled=true");
-      }, 2000);
+      }, 4500);
       return () => clearTimeout(timeout);
     }
 
@@ -61,6 +54,9 @@ export const SubsciptionSuccess = () => {
             X
           </div>
           <p className="text-[#FF4D4F] text-[16px] font-medium">Payment failed</p>
+          <p className="text-[#FFFFFFB8] text-[14px] font-light">
+            Redirecting to subscription settings...
+          </p>
         </div>
       ) : successComplete ? (
         <Checkmark color="#3A44E4" size="100" />
