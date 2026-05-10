@@ -2,6 +2,19 @@ export const getPlanByLookupId = (id: string) => {
   return plans.filter((fil) => fil.lookupId === id)[0];
 };
 
+const paddlePriceIdByLookup: Record<string, string | undefined> = {
+  starter_monthly: import.meta.env.VITE_PADDLE_STARTER_MONTHLY,
+  starter_yearly: import.meta.env.VITE_PADDLE_STARTER_YEARLY,
+  premium_monthly: import.meta.env.VITE_PADDLE_PREMIUM_MONTHLY,
+  premium_yearly: import.meta.env.VITE_PADDLE_PREMIUM_YEARLY,
+  business_monthly: import.meta.env.VITE_PADDLE_BUSINESS_MONTHLY,
+  business_yearly: import.meta.env.VITE_PADDLE_BUSINESS_YEARLY,
+};
+
+export const getPaddlePriceId = (lookupId: string) => {
+  return paddlePriceIdByLookup[lookupId] || "";
+};
+
 export const getNextMonth = (evnt?: number) => {
   const event = evnt ? new Date(evnt) : new Date();
   event.setMonth(event.getMonth() + 1);

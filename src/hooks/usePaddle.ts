@@ -2,6 +2,7 @@ import React, { useCallback } from "react";
 import axios from "axios";
 import firebaseService from "../services/firebase.service";
 import { getPlanByLookupId } from "../utils/subscriptionPlans";
+import { getPaddlePriceId } from "../utils/subscriptionPlans";
 import { initializePaddle, Paddle } from "@paddle/paddle-js";
 
 const functionsBaseUrl = (
@@ -28,6 +29,16 @@ export default function usePaddle() {
   const onPaymentIntent = useCallback(
     ({ lookupKey, navigate }: { lookupKey: string; navigate: any }) => {
       setLoading(true);
+      const priceId = getPaddlePriceId(lookupKey);
+
+      if (!priceId) {
+        console.error(
+          `Missing Paddle price id for plan "${lookupKey}". Add VITE_PADDLE_PRICE_* env vars.`
+        );
+        setLoading(false);
+        navigate("/settings?canceled=true");
+        return;
+      }
 
       // Download and initialize Paddle instance from CDN
       initializePaddle({
@@ -51,7 +62,7 @@ export default function usePaddle() {
       }).then((paddle: Paddle | undefined) => {
         if (paddle) {
           paddle?.Checkout.open({
-            items: [{ priceId: lookupKey, quantity: 1 }],
+            items: [{ priceId, quantity: 1 }],
           });
         }
       });
@@ -149,12 +160,14 @@ export default function usePaddle() {
     }) => {
       setSubscriptionSessionLoading(true);
       const planData = getPlanByLookupId(lookupKey);
+      const priceId = getPaddlePriceId(lookupKey);
       return await axios
         .get(resolveUrl("currentPlanChange"), {
           params: {
             prorate,
             subscriptionId,
-            priceId: lookupKey,
+            lookupKey,
+            priceId,
             uid,
             planUpdate: {
               ...planData,
