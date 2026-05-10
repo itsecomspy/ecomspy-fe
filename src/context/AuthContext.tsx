@@ -15,6 +15,18 @@ interface UpdateDataProps {
   data: any;
 }
 
+const buildDefaultUserProfile = (user: any) => ({
+  fullName: user?.displayName || "",
+  email: user?.email || "",
+  subscription: 0,
+  createdAt: Date.now(),
+  search: {
+    count: 10,
+    lastUpdated: new Date().toLocaleDateString("en-GB"),
+  },
+  uicon: Math.floor(Math.random() * (5 - 1 + 1) + 1),
+});
+
 const AuthContext = createContext<any | undefined>(undefined);
 
 // create Auth context provider
@@ -29,13 +41,53 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
   const [error, setError] = React.useState<any>("");
   const [loading, setLoading] = React.useState<boolean>(false);
 
+  const ensureUserProfile = React.useCallback(
+    async (user: any, profileOverride?: Record<string, any>) => {
+      if (!user?.uid) {
+        return undefined;
+      }
+
+      const profilePath = `users/${user.uid}`;
+      const snapshot = await firebaseService.getDocument(profilePath);
+      const defaults = buildDefaultUserProfile(user);
+
+      if (!snapshot.exists()) {
+        const nextData = { ...defaults, ...profileOverride };
+        await firebaseService.setDocument(profilePath, nextData);
+        return nextData;
+      }
+
+      const currentData = snapshot.data() || {};
+      const mergedData = {
+        ...defaults,
+        ...currentData,
+        ...profileOverride,
+      };
+
+      if (
+        !currentData.email ||
+        !currentData.fullName ||
+        !currentData.search ||
+        typeof currentData.subscription === "undefined"
+      ) {
+        await firebaseService.mergeDocument(profilePath, mergedData);
+      }
+
+      return mergedData;
+    },
+    []
+  );
+
   const register = React.useCallback(
     async ({ userData }: { userData: UserDataProps }) => {
       setLoading(true);
       return firebaseService
         .createNewUser(userData.email, userData.password)
         .then(async (res) => {
-          firebaseService.setDocumentWithId(res.user.uid, "users", {
+          await updateProfile(res.user, {
+            displayName: userData.fullName,
+          });
+          await ensureUserProfile(res.user, {
             ...userData,
             search: {
               count: 10,
@@ -43,9 +95,6 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
             },
           });
           setUser(res.user);
-          updateProfile(res.user, {
-            displayName: userData.fullName,
-          });
           setLoading(false);
           return { result: "success" };
         })
@@ -65,6 +114,9 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
       return firebaseService
         .loginWithEmail(userData.email, userData.password)
         .then(async (res) => {
+          await ensureUserProfile(res.user, {
+            email: res.user?.email || userData.email,
+          });
           setUser(res.user);
           setLoading(false);
         })
@@ -73,38 +125,29 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
           setLoading(false);
         });
     },
-    []
+    [ensureUserProfile]
   );
 
   const loginWithGoogle = React.useCallback(async () => {
+    setLoading(true);
     await firebaseService
       .loginWithGoogle()
       .then(async (result) => {
-        const user = result.user;
-
-        let userExists = (
-          await firebaseService.getDocument(`users/${user.uid}`)
-        ).exists();
-        if (!userExists) {
-          let userData = {
-            fullName: user.displayName,
-            email: user.email,
-            subscription: 0,
-            createdAt: Date.now(),
-            search: {
-              count: 10,
-              lastUpdated: new Date().toLocaleDateString("en-GB"),
-            },
-            uicon: Math.floor(Math.random() * (5 - 1 + 1) + 1),
-          };
-          firebaseService.setDocumentWithId(user.uid, "users", userData);
-        }
+        const nextUser = result.user;
+        await ensureUserProfile(nextUser, {
+          fullName: nextUser.displayName || "",
+          email: nextUser.email || "",
+        });
+        setUser(nextUser);
       })
       .catch((error) => {
         const errorMessage = error.message;
         setError(errorMessage);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-  }, []);
+  }, [ensureUserProfile]);
 
   const forgotPassword = React.useCallback(async (email: string) => {
     return firebaseService.resetPassword(email);
@@ -125,15 +168,36 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
   );
 
   // Update user details
-  React.useMemo(async () => {
+  React.useEffect(() => {
     if (user) {
+      let unsub = () => {};
+      firebaseService
+        .getDocument(`users/${user.uid}`)
+        .then(async (res) => {
+          if (!res.exists()) {
+            const fallbackData = await ensureUserProfile(user);
+            setUserDetails(fallbackData);
+          } else {
+            setUserDetails(res.data());
+          }
+
+          unsub = firebaseService.streamDocument(`users/${user.uid}`, (doc) => {
+            if (doc.exists()) {
+              setUserDetails(doc.data());
+            }
+          });
+        })
+        .catch(() => {
+          setUserDetails(undefined);
+        });
+
       firebaseService
         .getDocument(`users/${user.uid}`)
         .then((res) => {
           const snapData = res.data();
-          setUserDetails(snapData);
           // Set subscription data
           if (snapData?.subscription) {
+            setSubscriptionLoading(true);
             retrieveSubscriptionData({
               subscriptionId: snapData?.subscription?.subscriptionId,
               uid: user.uid,
@@ -164,22 +228,31 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
               .finally(() => {
                 setSubscriptionLoading(false);
               });
+          } else {
+            setSubscriptionLoading(false);
           }
         })
         .catch((err) => err);
+
+      return () => {
+        unsub();
+      };
     }
-  }, [user?.uid]);
+  }, [ensureUserProfile, retrieveSubscriptionData, user?.uid]);
 
   // Check if user is authenticated
-  React.useMemo(() => {
-    firebaseService.onAuthChanged((auth) => {
+  React.useEffect(() => {
+    const unsubscribe = firebaseService.onAuthChanged(async (auth) => {
       if (auth) {
+        await ensureUserProfile(auth);
         setUser(auth);
       } else {
         setUser(0);
+        setUserDetails(undefined);
       }
     });
-  }, []);
+    return unsubscribe;
+  }, [ensureUserProfile]);
 
   const logout = React.useCallback(() => {
     firebaseService.logout();
