@@ -18,13 +18,13 @@ const apiBaseUrl = (
 
 const resolveUrl = (path: string) => `${apiBaseUrl}/${path}`;
 
-const getManagedProvider = (subscriptionProvider?: string, hasSubscription?: boolean) => {
+const configuredProvider = isPolarProvider ? "polar" : (isDodoProvider ? "dodo" : "paddle");
+
+const getManagedProvider = (subscriptionProvider?: string) => {
   if (subscriptionProvider === "polar") return "polar";
   if (subscriptionProvider === "dodo") return "dodo";
-  if (isPolarProvider) return "polar";
-  if (isDodoProvider) return "dodo";
-  if (hasSubscription) return "dodo";
-  return "paddle";
+  if (subscriptionProvider === "paddle") return "paddle";
+  return configuredProvider;
 };
 
 export default function useBilling() {
@@ -187,7 +187,7 @@ export default function useBilling() {
       lookupKey?: string;
       subscriptionProvider?: string;
     }) => {
-      const managedProvider = getManagedProvider(subscriptionProvider, Boolean(subscriptionId));
+      const managedProvider = getManagedProvider(subscriptionProvider);
       if (managedProvider === "paddle") {
         return paddleOnCurrentPlanChange({
           uid,
@@ -220,7 +220,7 @@ export default function useBilling() {
   const onOpenPortal = useCallback(
     async ({ uid, subscriptionProvider }: { uid: string; subscriptionProvider?: string }) => {
       if (!uid) return;
-      const managedProvider = getManagedProvider(subscriptionProvider, true);
+      const managedProvider = getManagedProvider(subscriptionProvider);
       if (managedProvider === "paddle") return;
 
       setSubscriptionSessionLoading(true);
@@ -253,8 +253,7 @@ export default function useBilling() {
     }) => {
       const subscriptionSource = subscription || userDetails?.subscription;
       const managedProvider = getManagedProvider(
-        subscriptionSource?.provider,
-        Boolean(subscriptionSource?.subscriptionId)
+        subscriptionSource?.provider
       );
       if (managedProvider === "paddle") {
         return paddleOnUnsubscribe({ userDetails, user });
