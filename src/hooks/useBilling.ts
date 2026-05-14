@@ -29,6 +29,13 @@ const getManagedProvider = (subscriptionProvider?: string, hasSubscription?: boo
 
 export default function useBilling() {
   const paddle = usePaddle();
+  const {
+    onPaymentIntent: paddleOnPaymentIntent,
+    onSuccess: paddleOnSuccess,
+    retrieveSubscriptionData: paddleRetrieveSubscriptionData,
+    onCurrentPlanChange: paddleOnCurrentPlanChange,
+    onUnsubscribe: paddleOnUnsubscribe,
+  } = paddle;
   const [loading, setLoading] = React.useState<boolean>(false);
   const [subscriptionSessionLoading, setSubscriptionSessionLoading] = React.useState<boolean>(false);
   const [successComplete, setSuccessComplete] = React.useState<boolean>(false);
@@ -36,7 +43,7 @@ export default function useBilling() {
   const onPaymentIntent = useCallback(
     async ({ lookupKey, navigate, uid, email, customerName }: { lookupKey: string; navigate: any; uid?: string; email?: string; customerName?: string }) => {
       if (!isPolarProvider && !isDodoProvider) {
-        return paddle.onPaymentIntent({ lookupKey, navigate });
+        return paddleOnPaymentIntent({ lookupKey, navigate });
       }
 
       if (!uid) {
@@ -76,13 +83,13 @@ export default function useBilling() {
         setLoading(false);
       }
     },
-    [paddle]
+    [paddleOnPaymentIntent]
   );
 
   const onSuccess = useCallback(
     async ({ uid, checkoutId, lookupKey, txnId }: { uid: string; checkoutId?: string; lookupKey?: string; txnId?: string }) => {
       if (!isPolarProvider && !isDodoProvider) {
-        return paddle.onSuccess({
+        return paddleOnSuccess({
           uid,
           txnId: txnId || "",
           lookupKey: lookupKey || "",
@@ -138,13 +145,17 @@ export default function useBilling() {
         setSubscriptionSessionLoading(false);
       }
     },
-    [paddle]
+    [paddleOnSuccess]
   );
 
   const retrieveSubscriptionData = useCallback(
     async ({ subscriptionId, uid }: { subscriptionId?: string; uid?: string }) => {
       if (!isPolarProvider && !isDodoProvider) {
-        return paddle.retrieveSubscriptionData({
+        if (!subscriptionId) {
+          return null;
+        }
+
+        return paddleRetrieveSubscriptionData({
           subscriptionId: subscriptionId || "",
         });
       }
@@ -159,7 +170,7 @@ export default function useBilling() {
       });
       return data;
     },
-    [paddle]
+    [paddleRetrieveSubscriptionData]
   );
 
   const onCurrentPlanChange = useCallback(
@@ -178,7 +189,7 @@ export default function useBilling() {
     }) => {
       const managedProvider = getManagedProvider(subscriptionProvider, Boolean(subscriptionId));
       if (managedProvider === "paddle") {
-        return paddle.onCurrentPlanChange({
+        return paddleOnCurrentPlanChange({
           uid,
           prorate: prorate || "prorated_immediately",
           subscriptionId: subscriptionId || "",
@@ -203,7 +214,7 @@ export default function useBilling() {
         setSubscriptionSessionLoading(false);
       }
     },
-    [paddle]
+    [paddleOnCurrentPlanChange]
   );
 
   const onOpenPortal = useCallback(
@@ -246,7 +257,7 @@ export default function useBilling() {
         Boolean(subscriptionSource?.subscriptionId)
       );
       if (managedProvider === "paddle") {
-        return paddle.onUnsubscribe({ userDetails, user });
+        return paddleOnUnsubscribe({ userDetails, user });
       }
 
       setSubscriptionSessionLoading(true);
@@ -263,7 +274,7 @@ export default function useBilling() {
         setSubscriptionSessionLoading(false);
       }
     },
-    [paddle]
+    [paddleOnUnsubscribe]
   );
 
   return {

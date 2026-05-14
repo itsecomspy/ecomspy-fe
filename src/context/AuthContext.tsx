@@ -2,6 +2,8 @@ import React, { createContext, useContext } from "react";
 import firebaseService from "../services/firebase.service";
 import { updateProfile } from "firebase/auth";
 import useBilling from "../hooks/useBilling";
+const SUBSCRIPTION_RETRY_DELAY_MS = 2000;
+const SUBSCRIPTION_RETRY_LIMIT = 5;
 
 interface UserDataProps {
   email: string;
@@ -32,6 +34,7 @@ const AuthContext = createContext<any | undefined>(undefined);
 // create Auth context provider
 export const AuthProvider = ({ children }: React.PropsWithChildren) => {
   const { retrieveSubscriptionData } = useBilling();
+  const retrieveSubscriptionDataRef = React.useRef(retrieveSubscriptionData);
 
   const [user, setUser] = React.useState<any>(null);
   const [userDetails, setUserDetails] = React.useState<any>();
@@ -40,6 +43,10 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
     React.useState<boolean>(false);
   const [error, setError] = React.useState<any>("");
   const [loading, setLoading] = React.useState<boolean>(false);
+
+  React.useEffect(() => {
+    retrieveSubscriptionDataRef.current = retrieveSubscriptionData;
+  }, [retrieveSubscriptionData]);
 
   const ensureUserProfile = React.useCallback(
     async (user: any, profileOverride?: Record<string, any>) => {
@@ -193,41 +200,67 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
 
       firebaseService
         .getDocument(`users/${user.uid}`)
-        .then((res) => {
+        .then(async (res) => {
           const snapData = res.data();
           // Set subscription data
           if (snapData?.subscription) {
+            const provider = snapData?.subscription?.provider || "paddle";
+            const subscriptionId = snapData?.subscription?.subscriptionId;
+            const requiresSubscriptionId = provider === "paddle";
+            if (requiresSubscriptionId && !subscriptionId) {
+              setSubscriptionLoading(false);
+              return;
+            }
+
             setSubscriptionLoading(true);
-            retrieveSubscriptionData({
-              subscriptionId: snapData?.subscription?.subscriptionId,
-              uid: user.uid,
-            })
-              .then((res: any) => {
-                const normalizedCancelled =
-                  typeof res?.cancelled === "boolean"
-                    ? res.cancelled
-                    : !res?.next_billed_at;
-                const normalizedStatus =
-                  normalizedCancelled
-                    ? "cancelled"
-                    : res?.status || "active";
-                const normalizedEndDate = res?.endDate || (!!res?.canceled_at ? res?.cancel_at : res?.current_billing_period?.ends_at);
-                setSubscriptionData({
-                  subscriptionId: snapData?.subscription?.subscriptionId,
-                  cancelled: normalizedCancelled,
-                  endDate: normalizedEndDate,
-                  status: normalizedStatus,
-                  planId: res?.planId || snapData?.subscription?.planId,
-                  lookupId: res?.lookupId || snapData?.subscription?.lookupId,
-                  provider: res?.provider || snapData?.subscription?.provider,
-                });
-              })
-              .catch((err: any) => {
-                err;
-              })
-              .finally(() => {
-                setSubscriptionLoading(false);
+            try {
+              let subscriptionResponse: any = null;
+
+              for (let attempt = 0; attempt < SUBSCRIPTION_RETRY_LIMIT; attempt += 1) {
+                try {
+                  subscriptionResponse = await retrieveSubscriptionDataRef.current({
+                    subscriptionId,
+                    uid: user.uid,
+                  });
+                  if (subscriptionResponse) {
+                    break;
+                  }
+                  throw new Error("Subscription response was empty");
+                } catch (retryError) {
+                  if (attempt === SUBSCRIPTION_RETRY_LIMIT - 1) {
+                    throw retryError;
+                  }
+                  await new Promise((resolve) => setTimeout(resolve, SUBSCRIPTION_RETRY_DELAY_MS));
+                }
+              }
+
+              const normalizedCancelled =
+                typeof subscriptionResponse?.cancelled === "boolean"
+                  ? subscriptionResponse.cancelled
+                  : !subscriptionResponse?.next_billed_at;
+              const normalizedStatus =
+                normalizedCancelled
+                  ? "cancelled"
+                  : subscriptionResponse?.status || "active";
+              const normalizedEndDate =
+                subscriptionResponse?.endDate ||
+                (!!subscriptionResponse?.canceled_at ?
+                  subscriptionResponse?.cancel_at :
+                  subscriptionResponse?.current_billing_period?.ends_at);
+              setSubscriptionData({
+                subscriptionId: snapData?.subscription?.subscriptionId,
+                cancelled: normalizedCancelled,
+                endDate: normalizedEndDate,
+                status: normalizedStatus,
+                planId: subscriptionResponse?.planId || snapData?.subscription?.planId,
+                lookupId: subscriptionResponse?.lookupId || snapData?.subscription?.lookupId,
+                provider: subscriptionResponse?.provider || snapData?.subscription?.provider,
               });
+            } catch (subscriptionError) {
+              console.error("Subscription retrieval failed after retries", subscriptionError);
+            } finally {
+              setSubscriptionLoading(false);
+            }
           } else {
             setSubscriptionLoading(false);
           }
@@ -238,7 +271,7 @@ export const AuthProvider = ({ children }: React.PropsWithChildren) => {
         unsub();
       };
     }
-  }, [ensureUserProfile, retrieveSubscriptionData, user?.uid]);
+  }, [ensureUserProfile, user?.uid]);
 
   // Check if user is authenticated
   React.useEffect(() => {

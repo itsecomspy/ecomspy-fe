@@ -16,6 +16,7 @@ const headers = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "*",
 };
+const paddleFailRedirect = "/settings?canceled=true";
 
 export default function usePaddle() {
   // Stripe states
@@ -80,30 +81,42 @@ export default function usePaddle() {
       txnId: string;
       lookupKey: string;
     }) => {
+      if (!uid || !txnId || !lookupKey) {
+        location.replace(paddleFailRedirect);
+        return;
+      }
+
       return firebaseService
         .getDocument(`users/${uid}`)
         .then(async () => {
-          await retrieveTransactionData({ txnId }).then(async (res) => {
-            const planData = getPlanByLookupId(lookupKey);
-            // Update firebase with new user subscription
-            await firebaseService.updateDocument("users", uid, {
-              subscription: {
-                ...planData,
-                status: "active",
-                transactionId: txnId,
-                renews: true,
-                subscriptionId: res.subscription_id,
-              },
-              // subscriptionHistory: updateSubscription,
-            });
+          const res = await retrieveTransactionData({ txnId });
+          if (!res?.subscription_id) {
+            throw new Error("Missing Paddle subscription id on transaction");
+          }
 
-            setSuccessComplete(true);
-            setTimeout(() => {
-              location.replace("/dashboard");
-            }, 3000);
+          const planData = getPlanByLookupId(lookupKey);
+          // Update firebase with new user subscription
+          await firebaseService.updateDocument("users", uid, {
+            subscription: {
+              ...planData,
+              status: "active",
+              transactionId: txnId,
+              renews: true,
+              subscriptionId: res.subscription_id,
+              provider: "paddle",
+            },
+            // subscriptionHistory: updateSubscription,
           });
+
+          setSuccessComplete(true);
+          setTimeout(() => {
+            location.replace("/dashboard");
+          }, 3000);
         })
-        .catch((err) => err);
+        .catch((err) => {
+          console.error("Paddle checkout confirmation failed", err);
+          location.replace(paddleFailRedirect);
+        });
     },
     []
   );
@@ -121,7 +134,8 @@ export default function usePaddle() {
           return res.data;
         })
         .catch((error) => {
-          console.log(error);
+          console.error("Failed to retrieve Paddle transaction", error);
+          throw error;
         });
     },
     []
@@ -129,6 +143,10 @@ export default function usePaddle() {
 
   const retrieveSubscriptionData = React.useCallback(
     async ({ subscriptionId }: { subscriptionId: string }) => {
+      if (!subscriptionId) {
+        return null;
+      }
+
       return await axios
         .get(resolveUrl("retrieveCurrentSubscription"), {
           params: {
@@ -140,7 +158,8 @@ export default function usePaddle() {
           return res.data;
         })
         .catch((error) => {
-          console.log(error);
+          console.error("Failed to retrieve Paddle subscription", error);
+          throw error;
         });
     },
     []
@@ -214,14 +233,26 @@ export default function usePaddle() {
     []
   );
 
-  return {
-    onPaymentIntent,
-    onSuccess,
-    loading,
-    subscriptionSessionLoading,
-    successComplete,
-    onCurrentPlanChange,
-    onUnsubscribe,
-    retrieveSubscriptionData,
-  };
+  return React.useMemo(
+    () => ({
+      onPaymentIntent,
+      onSuccess,
+      loading,
+      subscriptionSessionLoading,
+      successComplete,
+      onCurrentPlanChange,
+      onUnsubscribe,
+      retrieveSubscriptionData,
+    }),
+    [
+      onPaymentIntent,
+      onSuccess,
+      loading,
+      subscriptionSessionLoading,
+      successComplete,
+      onCurrentPlanChange,
+      onUnsubscribe,
+      retrieveSubscriptionData,
+    ]
+  );
 }
