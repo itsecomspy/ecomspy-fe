@@ -157,6 +157,7 @@ export default function useBilling() {
 
         return paddleRetrieveSubscriptionData({
           subscriptionId: subscriptionId || "",
+          uid,
         });
       }
 

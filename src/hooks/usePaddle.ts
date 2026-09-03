@@ -142,7 +142,13 @@ export default function usePaddle() {
   );
 
   const retrieveSubscriptionData = React.useCallback(
-    async ({ subscriptionId }: { subscriptionId: string }) => {
+    async ({
+      subscriptionId,
+      uid,
+    }: {
+      subscriptionId: string;
+      uid?: string;
+    }) => {
       if (!subscriptionId) {
         return null;
       }
@@ -151,6 +157,7 @@ export default function usePaddle() {
         .get(resolveUrl("retrieveCurrentSubscription"), {
           params: {
             subscriptionId,
+            uid,
           },
           headers: headers,
         })
